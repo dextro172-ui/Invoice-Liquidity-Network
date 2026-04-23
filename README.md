@@ -275,6 +275,12 @@ ILN is experimental software. Key risks to understand:
 
 ---
 
+## Governance
+
+The ILN protocol is governed by its community of token holders. To learn how governance works, how to earn voting power, and how to submit or vote on proposals, please read our [Governance Guide](./docs/governance.md).
+
+---
+
 ## Roadmap
 
 - [x] Core Soroban contract (submit, fund, mark_paid)
