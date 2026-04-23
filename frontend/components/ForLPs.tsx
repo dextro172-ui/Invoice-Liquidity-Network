@@ -28,7 +28,7 @@ export default function ForLPs() {
       <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-20 items-center">
         <div className="order-2 md:order-1">
           {/* Dashboard Mockup */}
-          <div className="bg-white rounded-xl shadow-xl overflow-hidden border border-outline-variant/10">
+          <div className="bg-surface rounded-xl shadow-xl overflow-hidden border border-outline-variant/10">
             <div className="p-6 border-b border-surface-dim flex justify-between items-center">
               <h3 className="font-bold flex items-center gap-2">
                 <span className="material-symbols-outlined text-primary">

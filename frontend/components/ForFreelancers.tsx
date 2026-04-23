@@ -42,7 +42,7 @@ export default function ForFreelancers() {
           </ul>
         </div>
         {/* Submission Mockup */}
-        <div className="bg-white p-8 rounded-xl shadow-xl border border-outline-variant/10">
+        <div className="bg-surface p-8 rounded-xl shadow-xl border border-outline-variant/10">
           <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
             <span className="material-symbols-outlined text-primary">
               description

@@ -3,7 +3,7 @@ export default function Hero() {
     <header className="pt-32 pb-20 px-8 bg-primary-container relative overflow-hidden">
       <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
         <div className="z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/20 rounded-full text-xs font-bold text-on-primary-container mb-6 tracking-wide uppercase">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-on-primary-container/20 rounded-full text-xs font-bold text-on-primary-container mb-6 tracking-wide uppercase">
             <span className="material-symbols-outlined text-[14px]">sensors</span>
             Testnet Live
           </div>
@@ -17,11 +17,11 @@ export default function Hero() {
             at a fair discount.
           </p>
           <div className="flex flex-wrap gap-4 mb-12">
-            <button className="bg-primary text-white px-8 py-4 rounded-lg font-bold flex items-center gap-2 hover:translate-y-[-2px] transition-transform">
+            <button className="bg-primary text-on-primary px-8 py-4 rounded-lg font-bold flex items-center gap-2 hover:translate-y-[-2px] transition-transform">
               Submit an Invoice
               <span className="material-symbols-outlined">arrow_forward</span>
             </button>
-            <button className="border-2 border-white/40 text-on-primary-container px-8 py-4 rounded-lg font-bold hover:bg-white/10 transition-colors">
+            <button className="border-2 border-on-primary-container/40 text-on-primary-container px-8 py-4 rounded-lg font-bold hover:bg-on-primary-container/10 transition-colors">
               Fund Invoices as LP
             </button>
           </div>
@@ -49,7 +49,7 @@ export default function Hero() {
             />
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="grid grid-cols-3 gap-4 w-full px-8">
-                <div className="bg-white p-4 rounded shadow-lg text-center flex flex-col items-center">
+                <div className="bg-surface p-4 rounded shadow-lg text-center flex flex-col items-center">
                   <span className="material-symbols-outlined text-primary mb-2">
                     person
                   </span>
@@ -62,7 +62,7 @@ export default function Hero() {
                     swap_horiz
                   </span>
                 </div>
-                <div className="bg-white p-4 rounded shadow-lg text-center flex flex-col items-center">
+                <div className="bg-surface p-4 rounded shadow-lg text-center flex flex-col items-center">
                   <span className="material-symbols-outlined text-primary mb-2">
                     account_balance
                   </span>

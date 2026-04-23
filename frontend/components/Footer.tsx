@@ -4,7 +4,7 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
           <div className="col-span-1 md:col-span-2">
-            <div className="text-2xl font-bold text-[#3d627f] mb-6">ILN</div>
+            <div className="text-2xl font-bold text-primary mb-6">ILN</div>
             <p className="text-on-primary-container/70 max-w-xs mb-8 font-body text-sm leading-relaxed">
               The decentralized standard for invoice liquidity. Built for the
               modern workforce.
