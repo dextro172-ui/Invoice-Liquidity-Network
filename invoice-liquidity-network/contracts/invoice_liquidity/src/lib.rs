@@ -15,18 +15,7 @@ use invoice::{
     save_invoice, save_invoice_funders, set_payer_score, Invoice, InvoiceStatus, StorageKey,
 };
 
-// ----------------------------------------------------------------
-// Storage Key (FIXED - single source of truth)
-// ----------------------------------------------------------------
 
-#[contracttype]
-pub enum StorageKey {
-    Invoice(u64),
-    InvoiceCount,
-
-    ApprovedToken(Address),
-    TokenList,
-}
 
 // ----------------------------------------------------------------
 // CONTRACT
@@ -184,7 +173,7 @@ impl InvoiceLiquidityContract {
 
             invoice.status = InvoiceStatus::Funded;
             invoice.funded_at = Some(env.ledger().timestamp());
-            invoice.funder = Some(funder); // Legacy support for single funder if it was first
+            invoice.funder = Some(funder.clone()); // Legacy support for single funder if it was first
         } else {
             invoice.status = InvoiceStatus::PartiallyFunded;
         }
@@ -216,7 +205,7 @@ impl InvoiceLiquidityContract {
         invoice.payer.require_auth();
 
         match invoice.status {
-            InvoiceStatus::Pending => return Err(ContractError::NotFunded),
+            InvoiceStatus::Pending | InvoiceStatus::PartiallyFunded => return Err(ContractError::NotFunded),
             InvoiceStatus::Paid => return Err(ContractError::AlreadyPaid),
             InvoiceStatus::Defaulted => return Err(ContractError::InvoiceDefaulted),
             InvoiceStatus::Funded => {}
@@ -243,8 +232,7 @@ impl InvoiceLiquidityContract {
             token.transfer(&contract_address, &funder_addr, &share);
         }
 
-        token.transfer(&invoice.payer, &contract, &invoice.amount);
-        token.transfer(&contract, &funder, &(invoice.amount + discount_amount));
+
 
         invoice.status = InvoiceStatus::Paid;
 
@@ -293,7 +281,7 @@ impl InvoiceLiquidityContract {
         }
 
         match invoice.status {
-            InvoiceStatus::Pending | InvoiceStatus::Funded => {
+            InvoiceStatus::Pending | InvoiceStatus::PartiallyFunded | InvoiceStatus::Funded => {
                 // Not settled yet — yield is pending, return 0
                 Ok(0)
             }
@@ -351,7 +339,7 @@ impl InvoiceLiquidityContract {
         // Invoice must be in Funded status
         match invoice.status {
             InvoiceStatus::Funded    => {} // correct state
-            InvoiceStatus::Pending   => return Err(ContractError::NotFunded),
+            InvoiceStatus::Pending | InvoiceStatus::PartiallyFunded => return Err(ContractError::NotFunded),
             InvoiceStatus::Paid      => return Err(ContractError::AlreadyPaid),
             InvoiceStatus::Defaulted => return Err(ContractError::InvoiceDefaulted),
         }
@@ -440,8 +428,18 @@ impl InvoiceLiquidityContract {
 // TOKEN HELPERS
 // ----------------------------------------------------------------
 
-fn token_client(env: &Env, token: &Address) -> TokenClient<'_> {
+fn token_client<'a>(env: &'a Env, token: &'a Address) -> TokenClient<'a> {
     TokenClient::new(env, token)
+}
+
+fn usdc_client<'a>(env: &'a Env) -> TokenClient<'a> {
+    let list: Vec<Address> = env.storage().persistent().get(&StorageKey::TokenList).unwrap_or(Vec::new(env));
+    let token = list.get(0).expect("contract not initialized");
+    TokenClient::new(env, &token)
+}
+
+fn discount_rate_as_i128(rate: u32) -> i128 {
+    rate as i128
 }
 
 fn is_approved_token(env: &Env, token: &Address) -> bool {

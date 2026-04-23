@@ -1,4 +1,4 @@
-use soroban_sdk::{contracttype, Address, Env, Vec};
+use soroban_sdk::{contracttype, Address, Env};
 
 // ----------------------------------------------------------------
 // Status enum — tracks lifecycle of invoice
@@ -44,6 +44,8 @@ pub enum StorageKey {
     Token,          // USDC token address
     PayerScore(Address), // Reputation score for a payer
     InvoiceFunders(u64), // List of funders for a partially funded invoice
+    ApprovedToken(Address),
+    TokenList,
 }
 
 // ----------------------------------------------------------------
@@ -84,16 +86,7 @@ pub fn next_invoice_id(env: &Env) -> u64 {
 
     next
 }
-+
-+/// Get a payer's reputation score (0-100, default 50)
-+pub fn get_payer_score(env: &Env, payer: &Address) -> u32 {
-+    env.storage()
-+        .persistent()
-+        .get(&StorageKey::PayerScore(payer.clone()))
-+        .unwrap_or(50)
-+}
-+
-+/// Update a payer's reputation score
+
 
 /// Get a payer's reputation score (0-100, default 50)
 pub fn get_payer_score(env: &Env, payer: &Address) -> u32 {

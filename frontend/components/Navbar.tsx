@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useWallet } from "../context/WalletContext";
 import { useTheme } from "../hooks/useTheme";
 import { formatAddress } from "../utils/format";
+import WalletButton from "./WalletButton";
 
 export default function Navbar() {
   const { theme, toggleTheme } = useTheme();
