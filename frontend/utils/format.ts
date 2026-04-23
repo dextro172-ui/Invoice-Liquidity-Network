@@ -1,6 +1,17 @@
+export function formatTokenAmount(amount: bigint | string | number, decimals: number, symbol: string): string {
+  const value = Number(amount) / Math.pow(10, decimals);
+  
+  // Use Intl.NumberFormat for regular numbers with grouping
+  const formatter = new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: decimals,
+  });
+  
+  return `${formatter.format(value)} ${symbol}`;
+}
+
 export function formatUSDC(amount: bigint): string {
-  const value = Number(amount) / 10_000_000;
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
+  return formatTokenAmount(amount, 7, 'USDC');
 }
 
 export function formatAddress(address: string): string {

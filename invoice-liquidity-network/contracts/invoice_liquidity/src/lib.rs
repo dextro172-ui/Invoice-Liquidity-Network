@@ -23,7 +23,11 @@ impl InvoiceLiquidityContract {
     // ------------------------------------------------------------
     // initialize (multi-token aware)
     // ------------------------------------------------------------
-    pub fn initialize(env: Env, admin: Address, token: Address) -> Result<(), ContractError> {
+        env: Env,
+        admin: Address,
+        token: Address,
+        xlm_token: Address,
+    ) -> Result<(), ContractError> {
         if env.storage().instance().has(&StorageKey::InvoiceCount) {
             return Err(ContractError::Unauthorized);
         }
@@ -36,9 +40,15 @@ impl InvoiceLiquidityContract {
         env.storage()
             .persistent()
             .set(&StorageKey::ApprovedToken(token.clone()), &true);
+            
+        // approve native XLM SAC
+        env.storage()
+            .persistent()
+            .set(&StorageKey::ApprovedToken(xlm_token.clone()), &true);
 
         let mut list: Vec<Address> = Vec::new(&env);
         list.push_back(token.clone());
+        list.push_back(xlm_token.clone());
 
         env.storage()
             .persistent()

@@ -56,8 +56,10 @@ fn setup() -> TestEnv {
     let contract_id = env.register(InvoiceLiquidityContract, ());
     let contract = InvoiceLiquidityContractClient::new(&env, &contract_id);
 
+    let xlm_address = Address::generate(&env);
+    
     // Initialize with mock token address
-    contract.initialize(&usdc_admin, &usdc_address);
+    contract.initialize(&usdc_admin, &usdc_address, &xlm_address);
 
     // ---- Set ledger timestamp to a known baseline ----
     let mut ledger_info = env.ledger().get();
