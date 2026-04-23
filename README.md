@@ -286,6 +286,13 @@ stellar contract invoke \
 
 ---
 
+
+---
+
+## Docs
+- Multi-token support guide: [docs/multi-token.md](./docs/multi-token.md)
+
+
 ## Open Issues
 
 Browse open issues and apply to work on them:
