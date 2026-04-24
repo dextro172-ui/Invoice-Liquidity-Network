@@ -725,7 +725,7 @@ fn is_approved_token(env: &Env, token: &Address) -> bool {
 // ----------------------------------------------------------------
 
 mod test;
+mod tests_concurrency;
 mod tests_fuzz;
 mod tests_multi_token;
 mod tests_security;
-mod tests_protocol_fee;
