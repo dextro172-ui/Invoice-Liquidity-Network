@@ -69,25 +69,6 @@
       ]
     ],
     [],
-    [
-      [
-        "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQUDE",
-        {
-          "function": {
-            "contract_fn": {
-              "contract_address": "CD3FXVGYSLQFFTW3UH6WFF2OKZH7VERGZJZAMJHTGHBWO4F6URWEJL23",
-              "function_name": "set_admin",
-              "args": [
-                {
-                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOLZM"
-                }
-              ]
-            }
-          },
-          "sub_invocations": []
-        }
-      ]
-    ],
     [],
     [
       [
@@ -325,53 +306,12 @@
         "entry": {
           "last_modified_ledger_seq": 0,
           "data": {
-            "account": {
-              "account_id": "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQUDE",
-              "balance": "0",
-              "seq_num": "0",
-              "num_sub_entries": 0,
-              "inflation_dest": null,
-              "flags": 0,
-              "home_domain": "",
-              "thresholds": "01010101",
-              "signers": [],
-              "ext": "v0"
-            }
-          },
-          "ext": "v0"
-        },
-        "live_until": null
-      },
-      {
-        "entry": {
-          "last_modified_ledger_seq": 0,
-          "data": {
             "contract_data": {
               "ext": "v0",
               "contract": "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEGWF",
               "key": {
                 "ledger_key_nonce": {
                   "nonce": "801925984706572462"
-                }
-              },
-              "durability": "temporary",
-              "val": "void"
-            }
-          },
-          "ext": "v0"
-        },
-        "live_until": 6311999
-      },
-      {
-        "entry": {
-          "last_modified_ledger_seq": 0,
-          "data": {
-            "contract_data": {
-              "ext": "v0",
-              "contract": "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQUDE",
-              "key": {
-                "ledger_key_nonce": {
-                  "nonce": "4837995959683129791"
                 }
               },
               "durability": "temporary",
@@ -431,7 +371,7 @@
               "contract": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD2KM",
               "key": {
                 "ledger_key_nonce": {
-                  "nonce": "4270020994084947596"
+                  "nonce": "4837995959683129791"
                 }
               },
               "durability": "temporary",
@@ -471,7 +411,7 @@
               "contract": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M",
               "key": {
                 "ledger_key_nonce": {
-                  "nonce": "6277191135259896685"
+                  "nonce": "4270020994084947596"
                 }
               },
               "durability": "temporary",
@@ -515,7 +455,7 @@
                     "symbol": "ApprovedToken"
                   },
                   {
-                    "address": "CBEPDNVYXQGWB5YUBXKJWYJA7OXTZW5LFLNO5JRRGE6Z6C5OSUZPCCEL"
+                    "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOLZM"
                   }
                 ]
               },
@@ -542,7 +482,7 @@
                     "symbol": "ApprovedToken"
                   },
                   {
-                    "address": "CD3FXVGYSLQFFTW3UH6WFF2OKZH7VERGZJZAMJHTGHBWO4F6URWEJL23"
+                    "address": "CBEPDNVYXQGWB5YUBXKJWYJA7OXTZW5LFLNO5JRRGE6Z6C5OSUZPCCEL"
                   }
                 ]
               },
@@ -659,14 +599,6 @@
                         }
                       ]
                     }
-                  },
-                  {
-                    "key": {
-                      "symbol": "token"
-                    },
-                    "val": {
-                      "address": "CBEPDNVYXQGWB5YUBXKJWYJA7OXTZW5LFLNO5JRRGE6Z6C5OSUZPCCEL"
-                    }
                   }
                 ]
               }
@@ -774,14 +706,6 @@
                           "symbol": "Pending"
                         }
                       ]
-                    }
-                  },
-                  {
-                    "key": {
-                      "symbol": "token"
-                    },
-                    "val": {
-                      "address": "CBEPDNVYXQGWB5YUBXKJWYJA7OXTZW5LFLNO5JRRGE6Z6C5OSUZPCCEL"
                     }
                   }
                 ]
@@ -902,7 +826,7 @@
                     "address": "CBEPDNVYXQGWB5YUBXKJWYJA7OXTZW5LFLNO5JRRGE6Z6C5OSUZPCCEL"
                   },
                   {
-                    "address": "CD3FXVGYSLQFFTW3UH6WFF2OKZH7VERGZJZAMJHTGHBWO4F6URWEJL23"
+                    "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOLZM"
                   }
                 ]
               }
@@ -943,6 +867,18 @@
                       "key": {
                         "vec": [
                           {
+                            "symbol": "FeeBps"
+                          }
+                        ]
+                      },
+                      "val": {
+                        "u32": 0
+                      }
+                    },
+                    {
+                      "key": {
+                        "vec": [
+                          {
                             "symbol": "FeeRate"
                           }
                         ]
@@ -961,6 +897,18 @@
                       },
                       "val": {
                         "u32": 5000
+                      }
+                    },
+                    {
+                      "key": {
+                        "vec": [
+                          {
+                            "symbol": "Treasury"
+                          }
+                        ]
+                      },
+                      "val": {
+                        "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARQG5"
                       }
                     }
                   ]
@@ -981,7 +929,7 @@
               "contract": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAATYON",
               "key": {
                 "ledger_key_nonce": {
-                  "nonce": "1194852393571756375"
+                  "nonce": "5806905060045992000"
                 }
               },
               "durability": "temporary",
@@ -1001,7 +949,7 @@
               "contract": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAVAX5",
               "key": {
                 "ledger_key_nonce": {
-                  "nonce": "5806905060045992000"
+                  "nonce": "6277191135259896685"
                 }
               },
               "durability": "temporary",
@@ -1411,109 +1359,6 @@
                                 },
                                 "val": {
                                   "bytes": "0000000000000000000000000000000000000000000000000000000000000002"
-                                }
-                              }
-                            ]
-                          }
-                        ]
-                      }
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "ext": "v0"
-        },
-        "live_until": 120960
-      },
-      {
-        "entry": {
-          "last_modified_ledger_seq": 0,
-          "data": {
-            "contract_data": {
-              "ext": "v0",
-              "contract": "CD3FXVGYSLQFFTW3UH6WFF2OKZH7VERGZJZAMJHTGHBWO4F6URWEJL23",
-              "key": "ledger_key_contract_instance",
-              "durability": "persistent",
-              "val": {
-                "contract_instance": {
-                  "executable": "stellar_asset",
-                  "storage": [
-                    {
-                      "key": {
-                        "symbol": "METADATA"
-                      },
-                      "val": {
-                        "map": [
-                          {
-                            "key": {
-                              "symbol": "decimal"
-                            },
-                            "val": {
-                              "u32": 7
-                            }
-                          },
-                          {
-                            "key": {
-                              "symbol": "name"
-                            },
-                            "val": {
-                              "string": "aaa:GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQUDE"
-                            }
-                          },
-                          {
-                            "key": {
-                              "symbol": "symbol"
-                            },
-                            "val": {
-                              "string": "aaa"
-                            }
-                          }
-                        ]
-                      }
-                    },
-                    {
-                      "key": {
-                        "vec": [
-                          {
-                            "symbol": "Admin"
-                          }
-                        ]
-                      },
-                      "val": {
-                        "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOLZM"
-                      }
-                    },
-                    {
-                      "key": {
-                        "vec": [
-                          {
-                            "symbol": "AssetInfo"
-                          }
-                        ]
-                      },
-                      "val": {
-                        "vec": [
-                          {
-                            "symbol": "AlphaNum4"
-                          },
-                          {
-                            "map": [
-                              {
-                                "key": {
-                                  "symbol": "asset_code"
-                                },
-                                "val": {
-                                  "string": "aaa\\0"
-                                }
-                              },
-                              {
-                                "key": {
-                                  "symbol": "issuer"
-                                },
-                                "val": {
-                                  "bytes": "0000000000000000000000000000000000000000000000000000000000000008"
                                 }
                               }
                             ]
