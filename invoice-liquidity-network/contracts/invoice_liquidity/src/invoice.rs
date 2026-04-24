@@ -1,34 +1,48 @@
 use soroban_sdk::{contracttype, Address, Env};
 
 // ----------------------------------------------------------------
-// Status enum — tracks the lifecycle of every invoice
+// Status enum — tracks lifecycle of invoice
 // ----------------------------------------------------------------
 
 #[contracttype]
 #[derive(Clone, Debug, PartialEq)]
 pub enum InvoiceStatus {
-    Pending,   // submitted, waiting for a liquidity provider to fund it
-    Funded,    // LP has funded it, freelancer has been paid out
-    Paid,      // payer has settled in full, LP has been released
-    Defaulted, // past due_date and still unpaid
+    Pending,         // submitted, waiting for a liquidity provider to fund it
+    Funded,          // LP has funded it, freelancer has been paid out
+    PartiallyFunded, // partially funded by one or more LPs
+    Paid,            // payer has settled in full, LP has been released
+    Defaulted,       // past due_date and still unpaid
 }
 
 // ----------------------------------------------------------------
-// Invoice struct
+// Invoice struct (UPDATED - token stays per invoice)
 // ----------------------------------------------------------------
 
 #[contracttype]
 #[derive(Clone, Debug)]
 pub struct Invoice {
-    pub id:            u64,
-    pub freelancer:    Address,  // who submitted the invoice (receives liquidity)
-    pub payer:         Address,  // the client who owes the money
-    pub amount:        i128,     // full invoice value in stroops (1 USDC = 10_000_000)
-    pub due_date:      u64,      // Unix timestamp — when the payer must settle by
-    pub discount_rate: u32,      // basis points, e.g. 300 = 3.00%
-    pub status:        InvoiceStatus,
-    pub funder:        Option<Address>, // set when an LP funds the invoice
-    pub funded_at:     Option<u64>,     // ledger timestamp when funding occurred
+    pub id: u64,
+    pub freelancer: Address, // who submitted the invoice (receives liquidity)
+    pub payer: Address,      // the client who owes the money
+    pub token: Address,      // token used for this invoice lifecycle
+    pub amount: i128,        // full invoice value in stroops (1 USDC = 10_000_000)
+    pub due_date: u64,       // Unix timestamp — when the payer must settle by
+    pub discount_rate: u32,  // basis points, e.g. 300 = 3.00%
+    pub status: InvoiceStatus,
+    pub funder: Option<Address>, // set when an LP funds the invoice (legacy for full funding)
+    pub funded_at: Option<u64>,  // ledger timestamp when funding occurred
+    pub amount_funded: i128,     // cumulative amount funded so far
+}
+
+#[contracttype]
+#[derive(Clone, Debug)]
+pub struct InvoiceParams {
+    pub freelancer: Address,
+    pub payer: Address,
+    pub amount: i128,
+    pub due_date: u64,
+    pub discount_rate: u32,
+    pub token: Address,
 }
 
 
@@ -42,29 +56,33 @@ pub struct PayerStats {
 }
 
 // ----------------------------------------------------------------
-// Storage key — one key type per stored entity keeps storage clean
+// Storage key (UPDATED for multi-token registry)
 // ----------------------------------------------------------------
 
 #[contracttype]
 pub enum StorageKey {
-    Invoice(u64),   // Invoice by ID
-    InvoiceCount,   // auto-increment counter for IDs
-    Token,          // USDC token address
-    PayerStats(Address), // aggregate stats for each payer (total invoiced, paid, defaulted)
+    Invoice(u64),        // Invoice by ID
+    InvoiceCount,        // auto-increment counter for IDs
+    Token,               // USDC token address
+    PayerScore(Address), // Reputation score for a payer
+    InvoiceFunders(u64), // List of funders for a partially funded invoice
+    ApprovedToken(Address),
+    TokenList,
+    Admin,
+    FeeRate,
+    MaxDiscountRate,
 }
 
 // ----------------------------------------------------------------
-// Storage helpers
+// Storage helpers (UNCHANGED CORE LOGIC)
 // ----------------------------------------------------------------
 
-/// Save an invoice to contract storage
 pub fn save_invoice(env: &Env, invoice: &Invoice) {
     env.storage()
         .persistent()
         .set(&StorageKey::Invoice(invoice.id), invoice);
 }
 
-/// Load an invoice by ID — panics if not found
 pub fn load_invoice(env: &Env, id: u64) -> Invoice {
     env.storage()
         .persistent()
@@ -72,40 +90,56 @@ pub fn load_invoice(env: &Env, id: u64) -> Invoice {
         .expect("invoice not found")
 }
 
-/// Check whether an invoice exists without panicking
 pub fn invoice_exists(env: &Env, id: u64) -> bool {
-    env.storage()
-        .persistent()
-        .has(&StorageKey::Invoice(id))
+    env.storage().persistent().has(&StorageKey::Invoice(id))
 }
 
-/// Get the next invoice ID and increment the counter
 pub fn next_invoice_id(env: &Env) -> u64 {
     let current: u64 = env
         .storage()
         .persistent()
         .get(&StorageKey::InvoiceCount)
         .unwrap_or(0);
+
     let next = current + 1;
+
     env.storage()
         .persistent()
         .set(&StorageKey::InvoiceCount, &next);
+
     next
 }
 
-pub fn load_payer_stats(env: &Env, payer: &Address) -> PayerStats {
+/// Get a payer's reputation score (0-100, default 50)
+pub fn get_payer_score(env: &Env, payer: &Address) -> u32 {
     env.storage()
         .persistent()
-        .get(&StorageKey::PayerStats(payer.clone()))
-        .unwrap_or(PayerStats {
-            total_paid: 0,
-            total_defaulted: 0,
-            total_volume: 0,
-        })
+        .get(&StorageKey::PayerScore(payer.clone()))
+        .unwrap_or(50)
 }
 
-pub fn save_payer_stats(env: &Env, payer: &Address, stats: &PayerStats) {
+/// Update a payer's reputation score
+pub fn set_payer_score(env: &Env, payer: &Address, score: u32) {
+    let mut score = score;
+    if score > 100 {
+        score = 100;
+    }
     env.storage()
         .persistent()
-        .set(&StorageKey::PayerStats(payer.clone()), stats);
+        .set(&StorageKey::PayerScore(payer.clone()), &score);
+}
+
+/// Get the list of funders and their contributions for an invoice
+pub fn get_invoice_funders(env: &Env, id: u64) -> soroban_sdk::Vec<(Address, i128)> {
+    env.storage()
+        .persistent()
+        .get(&StorageKey::InvoiceFunders(id))
+        .unwrap_or(soroban_sdk::Vec::new(env))
+}
+
+/// Save the list of funders for an invoice
+pub fn save_invoice_funders(env: &Env, id: u64, funders: &soroban_sdk::Vec<(Address, i128)>) {
+    env.storage()
+        .persistent()
+        .set(&StorageKey::InvoiceFunders(id), funders);
 }

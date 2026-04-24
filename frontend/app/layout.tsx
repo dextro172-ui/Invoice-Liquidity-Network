@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Manrope, Newsreader } from "next/font/google";
 import "./globals.css";
 import { ToastProvider } from "../context/ToastContext";
+import { WalletProvider } from "../context/WalletContext";
 
 const manrope = Manrope({
   variable: "--font-manrope",
@@ -25,7 +26,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="scroll-smooth">
+    <html lang="en" className="scroll-smooth" suppressHydrationWarning>
       <head>
         <link
           rel="stylesheet"
@@ -53,7 +54,9 @@ export default function RootLayout({
         className={`${manrope.variable} ${newsreader.variable} antialiased bg-background text-foreground transition-colors duration-300 selection:bg-primary-container selection:text-on-primary-container`}
       >
         <ToastProvider>
-          {children}
+          <WalletProvider>
+            {children}
+          </WalletProvider>
         </ToastProvider>
       </body>
     </html>

@@ -1,5 +1,21 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Snapshot Tests
+
+The frontend includes Vitest snapshot coverage for the main invoice UI surfaces in `frontend/__tests__`.
+
+Run the suite with:
+
+```bash
+npm test
+```
+
+When an intentional UI change updates a snapshot, refresh the committed snapshots with:
+
+```bash
+npm test -- --update-snapshots
+```
+
 ## Getting Started
 
 First, run the development server:

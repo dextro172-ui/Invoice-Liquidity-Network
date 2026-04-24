@@ -1,0 +1,7 @@
+{
+  "name": "invoice-liquidity-network",
+  "private": true,
+  "scripts": {
+    "test": "npm --prefix sdk test"
+  }
+}

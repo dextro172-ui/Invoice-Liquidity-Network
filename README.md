@@ -1,5 +1,7 @@
 # Invoice Liquidity Network
 
+[![CI](https://github.com/Nursca/Invoice-Liquidity-Network/actions/workflows/ci.yml/badge.svg)](https://github.com/Nursca/Invoice-Liquidity-Network/actions/workflows/ci.yml)
+
 **Turn unpaid invoices into instant liquidity on-chain, on Stellar.**
 
 Invoice Liquidity Network (ILN) is an open-source, decentralized invoice factoring protocol built on [Stellar](https://stellar.org) using [Soroban](https://soroban.stellar.org) smart contracts. Freelancers, creators, and SMEs can unlock the value of their outstanding invoices immediately, while DeFi liquidity providers earn yield by funding them at a discount.
@@ -75,6 +77,28 @@ ILN is built natively on Stellar for a reason:
 | Stellar Testnet | `CD3TE3IAHM737P236XZL2OYU275ZKD6MN7YH7PYYAXYIGEH55OPEWYJC` |
 
 > Mainnet deployment coming after audit. Do not use with real funds until then.
+
+## JavaScript/TypeScript SDK
+
+The repository now includes a typed SDK package at [sdk/README.md](/Users/mac/Desktop/Learning-folder/Invoice-Liquidity-Network/sdk/README.md) with browser Freighter signing support and Node.js keypair signing.
+
+```bash
+npm install @invoice-liquidity/sdk
+```
+
+## Frontend Snapshot Tests
+
+The frontend uses Vitest snapshots for key UI states so unintentional visual changes are caught during review.
+
+```bash
+cd frontend && npm test
+```
+
+To intentionally refresh committed snapshots after a UI change:
+
+```bash
+cd frontend && npm test -- --update-snapshots
+```
 
 ---
 
