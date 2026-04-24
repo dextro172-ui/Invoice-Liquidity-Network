@@ -1,3 +1,29 @@
+export interface TokenDisplayMeta {
+  symbol: string;
+  decimals: number;
+}
+
+export function formatTokenAmount(
+  amount: bigint,
+  token: TokenDisplayMeta = { symbol: "USDC", decimals: 7 },
+): string {
+  const negative = amount < 0n;
+  const absolute = negative ? amount * -1n : amount;
+  const divisor = 10n ** BigInt(token.decimals);
+  const whole = absolute / divisor;
+  const fraction = absolute % divisor;
+  const trimmedFraction = fraction
+    .toString()
+    .padStart(token.decimals, "0")
+    .replace(/0+$/, "");
+  const formattedWhole = new Intl.NumberFormat("en-US").format(Number(whole));
+  const value = trimmedFraction ? `${formattedWhole}.${trimmedFraction}` : formattedWhole;
+
+  return `${negative ? "-" : ""}${value} ${token.symbol}`;
+}
+
+export function formatUSDC(amount: bigint): string {
+  return formatTokenAmount(amount, { symbol: "USDC", decimals: 7 });
 export function formatTokenAmount(amount: bigint | string | number, decimals: number, symbol: string): string {
   const value = Number(amount) / Math.pow(10, decimals);
   
@@ -26,3 +52,15 @@ export function formatDate(timestamp: bigint): string {
 export function calculateYield(amount: bigint, discount_rate: number): bigint {
   return (amount * BigInt(discount_rate)) / BigInt(10_000);
 }
+
+export function formatRelativeTime(timestamp: number): string {
+  const now = Date.now();
+  const diffInSeconds = Math.floor((now - timestamp) / 1000);
+
+  if (diffInSeconds < 60) return "just now";
+  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
+  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
+  if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)} days ago`;
+  return new Date(timestamp).toLocaleDateString();
+}
+

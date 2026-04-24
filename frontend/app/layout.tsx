@@ -3,6 +3,7 @@ import { Manrope, Newsreader } from "next/font/google";
 import "./globals.css";
 import { ToastProvider } from "../context/ToastContext";
 import { WalletProvider } from "../context/WalletContext";
+import OnboardingFlow from "../components/onboarding/OnboardingFlow";
 
 const manrope = Manrope({
   variable: "--font-manrope",
@@ -56,6 +57,7 @@ export default function RootLayout({
         <ToastProvider>
           <WalletProvider>
             {children}
+            <OnboardingFlow />
           </WalletProvider>
         </ToastProvider>
       </body>

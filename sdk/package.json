@@ -24,6 +24,7 @@
   "scripts": {
     "build": "tsup",
     "test": "vitest run",
+    "test:integration": "vitest run tests/integration.test.ts",
     "check": "tsc --noEmit"
   },
   "dependencies": {

@@ -1,16 +1,16 @@
 import {
-    Account,
-    Address,
-    BASE_FEE,
-    nativeToScVal,
-    Operation,
-    rpc,
-    scValToNative,
-    Transaction,
-    TransactionBuilder,
-    xdr
+  xdr,
+  rpc,
+  Address,
+  scValToNative,
+  nativeToScVal,
+  TransactionBuilder,
+  Networks,
+  Operation,
+  Account,
+  BASE_FEE,
 } from "@stellar/stellar-sdk";
-import { CONTRACT_ID, NETWORK_PASSPHRASE, RPC_URL, TESTNET_USDC_TOKEN_ID } from "../constants";
+import { CONTRACT_ID, NETWORK_PASSPHRASE, RPC_URL, TESTNET_EURC_TOKEN_ID, TESTNET_USDC_TOKEN_ID } from "../constants";
 
 const server = new rpc.Server(RPC_URL);
 const READ_ACCOUNT = "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF";
@@ -28,12 +28,33 @@ export interface Invoice {
   status: string;
   funder?: string;
   funded_at?: bigint;
+  token?: string;
 }
 
 export interface SubmittedInvoiceResult {
   invoiceId: bigint;
   txHash: string;
 }
+
+export interface TokenMetadata {
+  contractId: string;
+  name: string;
+  symbol: string;
+  decimals: number;
+}
+
+const KNOWN_TOKEN_METADATA: Record<string, Omit<TokenMetadata, "contractId">> = {
+  [TESTNET_USDC_TOKEN_ID]: {
+    name: "USD Coin",
+    symbol: "USDC",
+    decimals: 7,
+  },
+  [TESTNET_EURC_TOKEN_ID]: {
+    name: "Euro Coin",
+    symbol: "EURC",
+    decimals: 7,
+  },
+};
 
 function buildReadTransaction(contractId: string, method: string, params: xdr.ScVal[]) {
   return new TransactionBuilder(new Account(READ_ACCOUNT, "0"), {
@@ -82,17 +103,18 @@ export async function getInvoice(id: bigint): Promise<Invoice> {
       status: parseStatus(native.status),
       funder: native.funder,
       funded_at: native.funded_at,
+      token: native.token,
     };
   } else {
     throw new Error(`Failed to get invoice ${id}`);
   }
 }
 
-function parseStatus(status: any): string {
-  if (typeof status === 'object') {
+function parseStatus(status: unknown): string {
+  if (status && typeof status === "object") {
     return Object.keys(status)[0];
   }
-  return status;
+  return String(status);
 }
 
 export async function getAllInvoices(): Promise<Invoice[]> {
@@ -109,7 +131,7 @@ export async function getAllInvoices(): Promise<Invoice[]> {
       invoices.push(invoice);
       i++;
       consecutiveFailures = 0; // reset on success
-    } catch (e) {
+    } catch {
       // If i=1 and it fails, it might mean there are no invoices at all
       // or the contract doesn't have any data yet.
       consecutiveFailures++;
@@ -132,7 +154,6 @@ export async function fundInvoice(funder: string, invoice_id: bigint) {
     nativeToScVal(await getInvoiceRequiredFunding(invoice_id), { type: "i128" }),
   ];
 
-  const funderAddress = Address.fromString(funder);
   const account = await server.getAccount(funder);
   
   const tx = new TransactionBuilder(account, {
@@ -163,6 +184,39 @@ export async function fundInvoice(funder: string, invoice_id: bigint) {
   const finalTx = rpc.assembleTransaction(tx, sim).build();
   return finalTx;
 }
+
+
+export interface SubmitInvoiceArgs {
+  freelancer: string;
+  payer: string;
+  /** Amount in stroops (1 USDC = 10_000_000) */
+  amount: bigint;
+  /** Unix timestamp (seconds) */
+  dueDate: number;
+  /** Basis points * 100 — e.g. 500 = 5.00% */
+  discountRate: number;
+}
+
+/**
+ * Builds, simulates and assembles a submit_invoice transaction.
+ * Returns the final Transaction (ready for Freighter to sign) and the
+ * invoice ID predicted by the simulation.
+ */
+export async function submitInvoice(
+  args: SubmitInvoiceArgs
+): Promise<{ tx: ReturnType<typeof rpc.assembleTransaction>["build"] extends () => infer R ? R : never; invoiceId: bigint }> {
+  const contractAddress = CONTRACT_ID;
+  const method = "submit_invoice";
+
+  const params: xdr.ScVal[] = [
+    Address.fromString(args.freelancer).toScVal(),
+    Address.fromString(args.payer).toScVal(),
+    nativeToScVal(args.amount, { type: "i128" }),
+    nativeToScVal(BigInt(args.dueDate), { type: "u64" }),
+    nativeToScVal(args.discountRate, { type: "u32" }),
+  ];
+
+  const account = await server.getAccount(args.freelancer);
 
 async function getInvoiceRequiredFunding(invoiceId: bigint): Promise<bigint> {
   const invoice = await getInvoice(invoiceId);
@@ -199,6 +253,69 @@ export async function markPaid(payer: string, invoice_id: bigint) {
 
   const sim = await server.simulateTransaction(tx);
   if (!rpc.Api.isSimulationSuccess(sim)) {
+    throw new Error(`Simulation failed: ${sim.error}`);
+  }
+
+  const finalTx = rpc.assembleTransaction(tx, sim).build();
+  return finalTx;
+}
+
+export async function claimDefault(funder: string, invoice_id: bigint) {
+  const contractAddress = CONTRACT_ID;
+  const method = "claim_default";
+  const params: xdr.ScVal[] = [
+    Address.fromString(funder).toScVal(),
+    nativeToScVal(invoice_id, { type: "u64" }),
+  ];
+
+  const account = await server.getAccount(funder);
+
+
+  const tx = new TransactionBuilder(account, {
+    fee: "10000",
+    networkPassphrase: NETWORK_PASSPHRASE,
+  })
+    .addOperation(
+      Operation.invokeHostFunction({
+        func: xdr.HostFunction.hostFunctionTypeInvokeContract(
+          new xdr.InvokeContractArgs({
+            contractAddress: Address.fromString(contractAddress).toScAddress(),
+            functionName: method,
+            args: params,
+          })
+        ),
+        auth: [],
+      })
+    )
+    .setTimeout(60 * 5)
+    .build();
+
+  const sim = await server.simulateTransaction(tx);
+  if (!rpc.Api.isSimulationSuccess(sim)) {
+
+    throw new Error(`Simulation failed: ${(sim as any).error}`);
+  }
+
+  // Extract the predicted invoice ID from simulation retval
+  let invoiceId = BigInt(0);
+  try {
+    const raw = scValToNative(sim.result!.retval);
+    // Contract returns Result<u64, Error> — unwrap Ok variant
+    if (raw && typeof raw === "object" && "ok" in raw) {
+      invoiceId = BigInt((raw as any).ok);
+    } else if (raw && typeof raw === "object" && "Ok" in raw) {
+      invoiceId = BigInt((raw as any).Ok);
+    } else {
+      invoiceId = BigInt(raw as any);
+    }
+  } catch (_) {
+    // If we can't parse it, proceed without the ID — it'll be shown after poll
+  }
+
+  const finalTx = rpc.assembleTransaction(tx, sim).build();
+  return { tx: finalTx as any, invoiceId };
+}
+
     throw new Error(`Simulation failed: ${sim.error}`);
   }
 
@@ -280,17 +397,66 @@ export async function submitInvoiceTransaction({
 }
 
 export async function getUsdcBalance(address: string, tokenId = TESTNET_USDC_TOKEN_ID): Promise<bigint> {
+  return getTokenBalance(address, tokenId);
+}
+
+export async function getApprovedTokenIds(): Promise<string[]> {
+  const callResult = await server.simulateTransaction(buildReadTransaction(CONTRACT_ID, "list_tokens", []));
+
+  if (!rpc.Api.isSimulationSuccess(callResult) || !callResult.result?.retval) {
+    throw new Error("Failed to fetch approved tokens.");
+  }
+
+  const native = scValToNative(callResult.result.retval);
+  if (!Array.isArray(native)) {
+    return [];
+  }
+
+  return native.map((value) => String(value));
+}
+
+async function readTokenContractValue(tokenId: string, method: string): Promise<unknown> {
+  const callResult = await server.simulateTransaction(buildReadTransaction(tokenId, method, []));
+
+  if (!rpc.Api.isSimulationSuccess(callResult) || !callResult.result?.retval) {
+    throw new Error(`Failed to fetch token ${method}.`);
+  }
+
+  return scValToNative(callResult.result.retval);
+}
+
+export async function getTokenMetadata(tokenId: string): Promise<TokenMetadata> {
+  const fallback = KNOWN_TOKEN_METADATA[tokenId];
+  const [nameResult, symbolResult, decimalsResult] = await Promise.allSettled([
+    readTokenContractValue(tokenId, "name"),
+    readTokenContractValue(tokenId, "symbol"),
+    readTokenContractValue(tokenId, "decimals"),
+  ]);
+
+  const name = nameResult.status === "fulfilled" ? String(nameResult.value) : fallback?.name ?? "Token";
+  const symbol = symbolResult.status === "fulfilled" ? String(symbolResult.value) : fallback?.symbol ?? "TOKEN";
+  const decimalsValue = decimalsResult.status === "fulfilled" ? Number(decimalsResult.value) : fallback?.decimals ?? 7;
+
+  return {
+    contractId: tokenId,
+    name,
+    symbol,
+    decimals: Number.isFinite(decimalsValue) ? decimalsValue : 7,
+  };
+}
+
+export async function getTokenBalance(address: string, tokenId = TESTNET_USDC_TOKEN_ID): Promise<bigint> {
   const params: xdr.ScVal[] = [Address.fromString(address).toScVal()];
   const callResult = await server.simulateTransaction(buildReadTransaction(tokenId, "balance", params));
 
   if (!rpc.Api.isSimulationSuccess(callResult) || !callResult.result?.retval) {
-    throw new Error("Failed to fetch USDC balance.");
+    throw new Error("Failed to fetch token balance.");
   }
 
   return BigInt(scValToNative(callResult.result.retval));
 }
 
-export async function getUsdcAllowance({
+export async function getTokenAllowance({
   owner,
   spender = CONTRACT_ID,
   tokenId = TESTNET_USDC_TOKEN_ID,
@@ -306,13 +472,21 @@ export async function getUsdcAllowance({
   const callResult = await server.simulateTransaction(buildReadTransaction(tokenId, "allowance", params));
 
   if (!rpc.Api.isSimulationSuccess(callResult) || !callResult.result?.retval) {
-    throw new Error("Failed to fetch USDC allowance.");
+    throw new Error("Failed to fetch token allowance.");
   }
 
   return BigInt(scValToNative(callResult.result.retval));
 }
 
-export async function buildApproveUsdcTransaction({
+export async function getUsdcAllowance(args: {
+  owner: string;
+  spender?: string;
+  tokenId?: string;
+}): Promise<bigint> {
+  return getTokenAllowance(args);
+}
+
+export async function buildApproveTokenTransaction({
   owner,
   amount,
   spender = CONTRACT_ID,
@@ -348,11 +522,20 @@ export async function buildApproveUsdcTransaction({
 
   const simulated = await server.simulateTransaction(tx);
   if (!rpc.Api.isSimulationSuccess(simulated)) {
-    const message = "error" in simulated ? simulated.error : "Unable to simulate USDC approval.";
+    const message = "error" in simulated ? simulated.error : "Unable to simulate token approval.";
     throw new Error(`Simulation failed: ${message}`);
   }
 
   return rpc.assembleTransaction(tx, simulated).build();
+}
+
+export async function buildApproveUsdcTransaction(args: {
+  owner: string;
+  amount: bigint;
+  spender?: string;
+  tokenId?: string;
+}) {
+  return buildApproveTokenTransaction(args);
 }
 
 export async function submitSignedTransaction({
@@ -422,3 +605,62 @@ function extractInvoiceIdFromTransaction(result: unknown): bigint | null {
 
   return null;
 }
+
+// ─── Payer score ──────────────────────────────────────────────────────────────
+
+export interface PayerScoreResult {
+  score: number;
+  settled_on_time: number;
+  defaults: number;
+}
+
+/**
+ * Fetch the reputation score for a single payer address.
+ * Returns null if the contract returns no data (new/unknown payer).
+ */
+export async function getPayerScore(payerAddress: string): Promise<PayerScoreResult | null> {
+  try {
+    const params: xdr.ScVal[] = [Address.fromString(payerAddress).toScVal()];
+    const callResult = await server.simulateTransaction(
+      buildReadTransaction(CONTRACT_ID, "payer_score", params)
+    );
+
+    if (!rpc.Api.isSimulationSuccess(callResult) || !callResult.result?.retval) {
+      return null;
+    }
+
+    const native = scValToNative(callResult.result.retval);
+    // If the contract returns None/null for an unknown payer
+    if (native === null || native === undefined) return null;
+
+    return {
+      score: Number(native.score ?? native),
+      settled_on_time: Number(native.settled_on_time ?? 0),
+      defaults: Number(native.defaults ?? 0),
+    };
+  } catch {
+    // Unknown payer or function not present — treat as no score
+    return null;
+  }
+}
+
+/**
+ * Fetch payer scores for a batch of unique addresses in parallel.
+ * Returns a Map from address → score result (or null).
+ * Deduplicates addresses before fetching.
+ */
+export async function getPayerScoresBatch(
+  addresses: string[]
+): Promise<Map<string, PayerScoreResult | null>> {
+  const unique = [...new Set(addresses)];
+  const results = await Promise.allSettled(unique.map((addr) => getPayerScore(addr)));
+
+  const map = new Map<string, PayerScoreResult | null>();
+  unique.forEach((addr, i) => {
+    const result = results[i];
+    map.set(addr, result.status === "fulfilled" ? result.value : null);
+  });
+  return map;
+}
+
+

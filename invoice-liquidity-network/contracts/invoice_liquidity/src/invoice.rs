@@ -24,6 +24,7 @@ pub struct Invoice {
     pub id: u64,
     pub freelancer: Address, // who submitted the invoice (receives liquidity)
     pub payer: Address,      // the client who owes the money
+    pub token: Address,      // token used for this invoice lifecycle
     pub amount: i128,        // full invoice value in stroops (1 USDC = 10_000_000)
     pub due_date: u64,       // Unix timestamp — when the payer must settle by
     pub discount_rate: u32,  // basis points, e.g. 300 = 3.00%
@@ -44,6 +45,16 @@ pub struct InvoiceParams {
     pub token: Address,
 }
 
+
+#[contracttype]
+#[derive(Clone, Debug, Default)]
+pub struct PayerStats {
+    pub total_invoices: u64,
+    pub paid_on_time: u64,
+    pub defaults: u64,
+    pub total_volume: i128,
+}
+
 // ----------------------------------------------------------------
 // Storage key (UPDATED for multi-token registry)
 // ----------------------------------------------------------------
@@ -60,6 +71,7 @@ pub enum StorageKey {
     Admin,
     FeeRate,
     MaxDiscountRate,
+    DistributionContract,
 }
 
 // ----------------------------------------------------------------

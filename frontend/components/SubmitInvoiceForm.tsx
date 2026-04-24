@@ -2,15 +2,16 @@
 
 import { useState, type FormEvent, type ReactNode } from "react";
 import { NETWORK_NAME } from "../constants";
+import TokenSelector, { TokenAmount } from "../components/TokenSelector";
 import { useToast } from "../context/ToastContext";
 import { useWallet } from "../context/WalletContext";
+import { useApprovedTokens } from "../hooks/useApprovedTokens";
 import {
-  formatMoney,
   getMinimumDueDate,
   getYieldPreview,
   type InvoiceFormValues,
   validateInvoiceForm,
-  parseAmountToStroops,
+  parseAmountToUnits,
   parseDiscountRateToBps,
   toUnixTimestamp,
 } from "../utils/invoiceSubmission";
@@ -21,18 +22,22 @@ const INITIAL_FORM: InvoiceFormValues = {
   amount: "",
   dueDate: "",
   discountRate: "3.00",
+  tokenId: "",
 };
 
 export default function SubmitInvoiceForm() {
   const { addToast, updateToast } = useToast();
   const { address, isConnected, connect, disconnect, networkMismatch, error: walletError, signTx } = useWallet();
+  const { tokens, tokenMap, defaultToken, isLoading: tokensLoading, error: tokensError } = useApprovedTokens();
   const [form, setForm] = useState<InvoiceFormValues>(INITIAL_FORM);
   const [errors, setErrors] = useState<Partial<Record<keyof InvoiceFormValues | "wallet" | "submit", string>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittedInvoiceId, setSubmittedInvoiceId] = useState<string | null>(null);
   const [lastTxHash, setLastTxHash] = useState<string | null>(null);
 
-  const preview = getYieldPreview(form.amount, form.discountRate);
+  const effectiveTokenId = form.tokenId || defaultToken?.contractId || "";
+  const selectedToken = tokenMap.get(effectiveTokenId) ?? defaultToken ?? null;
+  const preview = getYieldPreview(form.amount, form.discountRate, selectedToken?.decimals ?? 7);
 
   const setField = (field: keyof InvoiceFormValues, value: string) => {
     setForm((current) => ({ ...current, [field]: value }));
@@ -54,9 +59,17 @@ export default function SubmitInvoiceForm() {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    const nextErrors = validateInvoiceForm(form, isConnected);
+    const nextErrors = validateInvoiceForm(
+      { ...form, tokenId: effectiveTokenId },
+      isConnected,
+      selectedToken?.decimals ?? 7,
+      selectedToken?.symbol ?? "token",
+    );
     if (networkMismatch) {
       nextErrors.wallet = `Freighter must be connected to ${NETWORK_NAME}.`;
+    }
+    if (!selectedToken && !tokensLoading) {
+      nextErrors.tokenId = "No approved tokens are currently available.";
     }
 
     if (Object.keys(nextErrors).length > 0) {
@@ -64,11 +77,11 @@ export default function SubmitInvoiceForm() {
       return;
     }
 
-    const amount = parseAmountToStroops(form.amount);
+    const amount = parseAmountToUnits(form.amount, selectedToken?.decimals ?? 7);
     const dueDate = toUnixTimestamp(form.dueDate);
     const discountRate = parseDiscountRateToBps(form.discountRate);
 
-    if (!address || amount === null || dueDate === null || discountRate === null) {
+    if (!address || !selectedToken || amount === null || dueDate === null || discountRate === null) {
       setErrors({ submit: "Please review the form values and try again." });
       return;
     }
@@ -87,6 +100,7 @@ export default function SubmitInvoiceForm() {
         dueDate,
         discountRate,
         signTx,
+        token: selectedToken.contractId,
       });
 
       const invoiceId = result.invoiceId.toString();
@@ -113,14 +127,14 @@ export default function SubmitInvoiceForm() {
   };
 
   return (
-    <div className="bg-surface-container-lowest p-6 sm:p-8 rounded-[28px] shadow-xl border border-outline-variant/15">
+    <div id="submit-invoice-form" className="bg-surface-container-lowest p-6 sm:p-8 rounded-[28px] shadow-xl border border-outline-variant/15">
       <div className="flex flex-col gap-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.28em] text-primary">Freelancer Portal</p>
             <h3 className="text-2xl font-headline mt-2">Submit a new invoice on Stellar testnet</h3>
             <p className="text-sm text-on-surface-variant mt-2 max-w-xl">
-              Connect Freighter, enter the payer wallet, and publish a USDC invoice with an instant yield preview for you and liquidity providers.
+              Connect Freighter, enter the payer wallet, choose an approved token, and publish an invoice with an instant yield preview for you and liquidity providers.
             </p>
           </div>
 
@@ -187,8 +201,24 @@ export default function SubmitInvoiceForm() {
               />
             </Field>
 
+            <TokenSelector
+              label="Settlement token"
+              value={effectiveTokenId}
+              tokens={tokens}
+              error={errors.tokenId}
+              disabled={tokensLoading || isSubmitting}
+              onChange={(value) => setField("tokenId", value)}
+              hint={
+                tokensError
+                  ? tokensError
+                  : tokensLoading
+                    ? "Loading approved tokens from the contract..."
+                    : "Approved tokens are fetched dynamically from the ILN token registry."
+              }
+            />
+
             <div className="grid gap-5 md:grid-cols-2">
-              <Field label="Invoice amount (USDC)" error={errors.amount}>
+              <Field label={`Invoice amount${selectedToken ? ` (${selectedToken.symbol})` : ""}`} error={errors.amount}>
                 <input
                   value={form.amount}
                   onChange={(event) => setField("amount", event.target.value)}
@@ -268,13 +298,13 @@ export default function SubmitInvoiceForm() {
           <aside className="rounded-[24px] bg-surface-container-low p-5 border border-outline-variant/15 h-fit">
             <p className="text-xs font-bold uppercase tracking-[0.24em] text-on-surface-variant">Live yield preview</p>
             <div className="mt-5 space-y-4">
-              <PreviewRow label="Invoice face value" value={formatMoney(preview.amountUsdc)} />
-              <PreviewRow label="Freelancer payout" value={formatMoney(preview.payoutUsdc)} accent />
-              <PreviewRow label="LP yield at settlement" value={formatMoney(preview.yieldUsdc)} />
+              <PreviewRow label="Invoice face value" value={`${preview.amountFormatted} ${selectedToken?.symbol ?? ""}`.trim()} token={selectedToken ?? undefined} />
+              <PreviewRow label="Freelancer payout" value={`${preview.payoutFormatted} ${selectedToken?.symbol ?? ""}`.trim()} token={selectedToken ?? undefined} accent />
+              <PreviewRow label="LP yield at settlement" value={`${preview.yieldFormatted} ${selectedToken?.symbol ?? ""}`.trim()} token={selectedToken ?? undefined} />
               <PreviewRow label="Discount rate" value={`${preview.discountRatePercent.toFixed(2)}%`} />
             </div>
             <div className="mt-5 rounded-2xl bg-surface-container-high px-4 py-4 text-sm text-on-surface-variant">
-              Submission is limited to {NETWORK_NAME}. Invoice amounts are sent in USDC stroops on-chain, and the payer must later settle from the same testnet ecosystem.
+              Submission is limited to {NETWORK_NAME}. The selected token is sent on-chain using that token contract&apos;s decimals, and the payer must later settle with the same asset.
             </div>
           </aside>
         </form>
@@ -309,16 +339,26 @@ function Field({
 function PreviewRow({
   label,
   value,
+  token,
   accent,
 }: {
   label: string;
   value: string;
+  token?: { symbol: string; iconLabel: string; contractId: string; name: string; decimals: number };
   accent?: boolean;
 }) {
   return (
     <div className="flex items-center justify-between gap-4 rounded-2xl bg-surface-container-lowest px-4 py-3">
       <span className="text-sm text-on-surface-variant">{label}</span>
-      <span className={`text-sm font-bold ${accent ? "text-primary" : "text-on-surface"}`}>{value}</span>
+      {token ? (
+        <TokenAmount
+          amount={value}
+          token={token}
+          className={`text-sm font-bold ${accent ? "text-primary" : "text-on-surface"}`}
+        />
+      ) : (
+        <span className={`text-sm font-bold ${accent ? "text-primary" : "text-on-surface"}`}>{value}</span>
+      )}
     </div>
   );
 }

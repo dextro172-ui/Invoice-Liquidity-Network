@@ -8,15 +8,16 @@ export interface InvoiceFormValues {
   amount: string;
   dueDate: string;
   discountRate: string;
+  tokenId: string;
 }
 
 export interface YieldPreview {
-  amountStroops: bigint;
-  amountUsdc: string;
-  payoutStroops: bigint;
-  payoutUsdc: string;
-  yieldStroops: bigint;
-  yieldUsdc: string;
+  amountUnits: bigint;
+  amountFormatted: string;
+  payoutUnits: bigint;
+  payoutFormatted: string;
+  yieldUnits: bigint;
+  yieldFormatted: string;
   discountRatePercent: number;
   discountRateBps: number;
 }
@@ -25,16 +26,17 @@ export function isValidStellarAccount(address: string): boolean {
   return StrKey.isValidEd25519PublicKey(address.trim());
 }
 
-export function parseAmountToStroops(value: string): bigint | null {
+export function parseAmountToUnits(value: string, decimals = 7): bigint | null {
   const normalized = value.trim();
 
-  if (!normalized || !/^\d+(\.\d{0,7})?$/.test(normalized)) {
+  if (!normalized || !new RegExp(`^\\d+(\\.\\d{0,${decimals}})?$`).test(normalized)) {
     return null;
   }
 
   const [wholePart, decimalPart = ""] = normalized.split(".");
-  const whole = BigInt(wholePart || "0") * BigInt(STROOPS_PER_USDC);
-  const paddedDecimals = (decimalPart + "0000000").slice(0, 7);
+  const unitBase = 10n ** BigInt(decimals);
+  const whole = BigInt(wholePart || "0") * unitBase;
+  const paddedDecimals = (decimalPart + "0".repeat(decimals)).slice(0, decimals);
 
   return whole + BigInt(paddedDecimals);
 }
@@ -79,35 +81,36 @@ export function getMinimumDueDate(): string {
   return `${year}-${month}-${day}`;
 }
 
-export function formatUsdcFromStroops(value: bigint): string {
+export function formatAmountFromUnits(value: bigint, decimals = 7): string {
   const negative = value < 0n;
   const absoluteValue = negative ? value * -1n : value;
-  const whole = absoluteValue / BigInt(STROOPS_PER_USDC);
-  const fraction = absoluteValue % BigInt(STROOPS_PER_USDC);
-  const formattedFraction = fraction.toString().padStart(7, "0").replace(/0+$/, "");
+  const unitBase = 10n ** BigInt(decimals);
+  const whole = absoluteValue / unitBase;
+  const fraction = absoluteValue % unitBase;
+  const formattedFraction = fraction.toString().padStart(decimals, "0").replace(/0+$/, "");
   const formattedWhole = new Intl.NumberFormat("en-US").format(Number(whole));
   const amount = formattedFraction ? `${formattedWhole}.${formattedFraction}` : formattedWhole;
 
   return `${negative ? "-" : ""}${amount}`;
 }
 
-export function getYieldPreview(amount: string, discountRate: string): YieldPreview {
-  const amountStroops = parseAmountToStroops(amount) ?? 0n;
+export function getYieldPreview(amount: string, discountRate: string, decimals = 7): YieldPreview {
+  const amountUnits = parseAmountToUnits(amount, decimals) ?? 0n;
   const discountRatePercent = Number.parseFloat(discountRate);
   const safePercent = Number.isFinite(discountRatePercent) && discountRatePercent > 0
     ? discountRatePercent
     : 0;
   const discountRateBps = Math.max(0, Math.round(safePercent * 100));
-  const yieldStroops = (amountStroops * BigInt(discountRateBps)) / 10_000n;
-  const payoutStroops = amountStroops - yieldStroops;
+  const yieldUnits = (amountUnits * BigInt(discountRateBps)) / 10_000n;
+  const payoutUnits = amountUnits - yieldUnits;
 
   return {
-    amountStroops,
-    amountUsdc: formatUsdcFromStroops(amountStroops),
-    payoutStroops,
-    payoutUsdc: formatUsdcFromStroops(payoutStroops),
-    yieldStroops,
-    yieldUsdc: formatUsdcFromStroops(yieldStroops),
+    amountUnits,
+    amountFormatted: formatAmountFromUnits(amountUnits, decimals),
+    payoutUnits,
+    payoutFormatted: formatAmountFromUnits(payoutUnits, decimals),
+    yieldUnits,
+    yieldFormatted: formatAmountFromUnits(yieldUnits, decimals),
     discountRatePercent: safePercent,
     discountRateBps,
   };
@@ -116,6 +119,8 @@ export function getYieldPreview(amount: string, discountRate: string): YieldPrev
 export function validateInvoiceForm(
   values: InvoiceFormValues,
   walletConnected: boolean,
+  decimals = 7,
+  tokenSymbol = "USDC",
   nowInSeconds = Math.floor(Date.now() / 1000),
 ): Partial<Record<keyof InvoiceFormValues | "wallet", string>> {
   const errors: Partial<Record<keyof InvoiceFormValues | "wallet", string>> = {};
@@ -130,9 +135,9 @@ export function validateInvoiceForm(
     errors.payer = "Enter a valid Stellar public key for the payer.";
   }
 
-  const amountStroops = parseAmountToStroops(values.amount);
-  if (amountStroops === null || amountStroops <= 0n) {
-    errors.amount = "Enter a valid invoice amount in USDC.";
+  const amountUnits = parseAmountToUnits(values.amount, decimals);
+  if (amountUnits === null || amountUnits <= 0n) {
+    errors.amount = `Enter a valid invoice amount in ${tokenSymbol}.`;
   }
 
   const dueDate = toUnixTimestamp(values.dueDate);
@@ -147,7 +152,19 @@ export function validateInvoiceForm(
     errors.discountRate = `Discount rate must be between 0.01% and ${MAX_DISCOUNT_RATE_PERCENT}%.`;
   }
 
+  if (!values.tokenId.trim()) {
+    errors.tokenId = "Select an approved token.";
+  }
+
   return errors;
+}
+
+export function parseAmountToStroops(value: string): bigint | null {
+  return parseAmountToUnits(value, 7);
+}
+
+export function formatUsdcFromStroops(value: bigint): string {
+  return formatAmountFromUnits(value, 7);
 }
 
 export function formatMoney(value: number | string): string {

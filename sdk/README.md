@@ -103,3 +103,23 @@ cd sdk
 npm install
 npm test
 ```
+
+## Integration tests (testnet)
+
+The integration suite runs real transactions against the deployed Stellar testnet contract.
+
+```bash
+cd sdk
+FREELANCER_SECRET=S... \
+PAYER_SECRET=S... \
+FUNDER_SECRET=S... \
+npm run test:integration
+```
+
+Required environment variables:
+
+- `FREELANCER_SECRET` - funded Stellar testnet secret for invoice submission
+- `PAYER_SECRET` - funded Stellar testnet secret for `mark_paid`
+- `FUNDER_SECRET` - funded Stellar testnet secret for funding and default claim
+
+If these variables are not set, integration tests are skipped automatically so CI and local unit test runs remain unaffected.

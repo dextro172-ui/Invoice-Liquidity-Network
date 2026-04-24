@@ -3,6 +3,11 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import SubmitInvoiceForm from "../components/SubmitInvoiceForm";
 
+const approvedTokens = [
+  { contractId: "token-usdc", name: "USD Coin", symbol: "USDC", decimals: 7, iconLabel: "US" },
+  { contractId: "token-eurc", name: "Euro Coin", symbol: "EURC", decimals: 7, iconLabel: "EU" },
+];
+
 const addToast = vi.fn(() => "toast-id");
 const updateToast = vi.fn();
 const submitInvoiceTransaction = vi.fn();
@@ -27,6 +32,16 @@ vi.mock("../context/ToastContext", () => ({
 
 vi.mock("../context/WalletContext", () => ({
   useWallet: () => walletState,
+}));
+
+vi.mock("../hooks/useApprovedTokens", () => ({
+  useApprovedTokens: () => ({
+    tokens: approvedTokens,
+    tokenMap: new Map(approvedTokens.map((token) => [token.contractId, token])),
+    defaultToken: approvedTokens[0],
+    isLoading: false,
+    error: null,
+  }),
 }));
 
 vi.mock("../utils/soroban", () => ({
@@ -58,9 +73,9 @@ describe("SubmitInvoiceForm", () => {
     });
 
     expect(screen.getByText("Live yield preview")).toBeInTheDocument();
-    expect(screen.getByText("$5,000.00")).toBeInTheDocument();
-    expect(screen.getByText("$4,775.00")).toBeInTheDocument();
-    expect(screen.getByText("$225.00")).toBeInTheDocument();
+    expect(screen.getByText("5,000 USDC")).toBeInTheDocument();
+    expect(screen.getByText("4,775 USDC")).toBeInTheDocument();
+    expect(screen.getByText("225 USDC")).toBeInTheDocument();
   });
 
   it("shows a wallet error before submitting when Freighter is not connected", async () => {
@@ -92,6 +107,9 @@ describe("SubmitInvoiceForm", () => {
     fireEvent.change(screen.getByDisplayValue("3.00"), {
       target: { value: "2.5" },
     });
+    fireEvent.change(screen.getByRole("combobox"), {
+      target: { value: "token-eurc" },
+    });
     fireEvent.change(screen.getByLabelText("Due date"), {
       target: { value: "2099-01-02" },
     });
@@ -104,6 +122,7 @@ describe("SubmitInvoiceForm", () => {
             payer: "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF",
             amount: 15000000000n,
             discountRate: 250,
+            token: "token-eurc",
           }),
         );
     });

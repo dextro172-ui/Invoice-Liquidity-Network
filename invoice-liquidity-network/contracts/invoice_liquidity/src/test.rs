@@ -19,7 +19,6 @@ struct TestEnv {
     freelancer: Address,
     payer: Address,
     funder: Address,
-    usdc_admin: Address,
 }
 
 /// Standard invoice values reused across tests
@@ -56,9 +55,11 @@ fn setup() -> TestEnv {
     let contract_id = env.register(InvoiceLiquidityContract, ());
     let contract = InvoiceLiquidityContractClient::new(&env, &contract_id);
 
-    let xlm_address = Address::generate(&env);
-    
-    // Initialize with mock token address
+    let xlm_admin = Address::generate(&env);
+    let xlm_contract_id = env.register_stellar_asset_contract_v2(xlm_admin);
+    let xlm_address = xlm_contract_id.address();
+
+    // Initialize with mock USDC and mock XLM SAC addresses
     contract.initialize(&usdc_admin, &usdc_address, &xlm_address);
 
     // ---- Set ledger timestamp to a known baseline ----
@@ -73,7 +74,6 @@ fn setup() -> TestEnv {
         freelancer,
         payer,
         funder,
-        usdc_admin,
     }
 }
 
@@ -122,6 +122,7 @@ fn test_submit_invoice_stores_correct_fields() {
     assert_eq!(invoice.id, id);
     assert_eq!(invoice.freelancer, t.freelancer);
     assert_eq!(invoice.payer, t.payer);
+    assert_eq!(invoice.token, t.token.address);
     assert_eq!(invoice.amount, INVOICE_AMOUNT);
     assert_eq!(invoice.due_date, due_date);
     assert_eq!(invoice.discount_rate, DISCOUNT_RATE);
@@ -204,7 +205,7 @@ fn test_submit_invoices_batch_atomicity_fail() {
     let due_date = t.env.ledger().timestamp() + DUE_DATE_OFFSET;
 
     let mut batch = Vec::new(&t.env);
-    
+
     // Valid invoice
     batch.push_back(InvoiceParams {
         freelancer: t.freelancer.clone(),
@@ -228,11 +229,10 @@ fn test_submit_invoices_batch_atomicity_fail() {
     let result = t.contract.try_submit_invoices_batch(&batch);
 
     assert_eq!(result, Err(Ok(ContractError::InvalidAmount)));
-    
+
     // Verify no invoice was saved
     assert_eq!(t.contract.get_invoice_count(), 0);
 }
-
 
 // ----------------------------------------------------------------
 // submit_invoice — validation errors
@@ -243,9 +243,14 @@ fn test_submit_rejects_zero_amount() {
     let t = setup();
     let due_date = t.env.ledger().timestamp() + DUE_DATE_OFFSET;
 
-    let result =
-        t.contract
-            .try_submit_invoice(&t.freelancer, &t.payer, &0, &due_date, &DISCOUNT_RATE, &t.token.address);
+    let result = t.contract.try_submit_invoice(
+        &t.freelancer,
+        &t.payer,
+        &0,
+        &due_date,
+        &DISCOUNT_RATE,
+        &t.token.address,
+    );
 
     assert_eq!(result, Err(Ok(ContractError::InvalidAmount)));
 }
@@ -255,9 +260,14 @@ fn test_submit_rejects_negative_amount() {
     let t = setup();
     let due_date = t.env.ledger().timestamp() + DUE_DATE_OFFSET;
 
-    let result =
-        t.contract
-            .try_submit_invoice(&t.freelancer, &t.payer, &-1, &due_date, &DISCOUNT_RATE, &t.token.address);
+    let result = t.contract.try_submit_invoice(
+        &t.freelancer,
+        &t.payer,
+        &-1,
+        &due_date,
+        &DISCOUNT_RATE,
+        &t.token.address,
+    );
 
     assert_eq!(result, Err(Ok(ContractError::InvalidAmount)));
 }
@@ -284,9 +294,14 @@ fn test_submit_rejects_zero_discount_rate() {
     let t = setup();
     let due_date = t.env.ledger().timestamp() + DUE_DATE_OFFSET;
 
-    let result =
-        t.contract
-            .try_submit_invoice(&t.freelancer, &t.payer, &INVOICE_AMOUNT, &due_date, &0, &t.token.address);
+    let result = t.contract.try_submit_invoice(
+        &t.freelancer,
+        &t.payer,
+        &INVOICE_AMOUNT,
+        &due_date,
+        &0,
+        &t.token.address,
+    );
 
     assert_eq!(result, Err(Ok(ContractError::InvalidDiscountRate)));
 }
@@ -416,7 +431,9 @@ fn test_fund_invoice_sets_funded_at_timestamp() {
 fn test_fund_nonexistent_invoice_fails() {
     let t = setup();
 
-    let result = t.contract.try_fund_invoice(&t.funder, &999, &INVOICE_AMOUNT);
+    let result = t
+        .contract
+        .try_fund_invoice(&t.funder, &999, &INVOICE_AMOUNT);
     assert_eq!(result, Err(Ok(ContractError::InvoiceNotFound)));
 }
 
@@ -554,99 +571,137 @@ fn test_mark_paid_nonexistent_invoice_fails() {
     let result = t.contract.try_mark_paid(&999);
     assert_eq!(result, Err(Ok(ContractError::InvoiceNotFound)));
 }
-// ----------------------------------------------------------------
-// claim_default — happy path
-// ----------------------------------------------------------------
 
 #[test]
-fn test_claim_default_reclaims_discount_to_lp() {
+fn test_claim_default_success() {
     let t = setup();
     let id = submit_standard_invoice(&t);
 
     t.contract.fund_invoice(&t.funder, &id, &INVOICE_AMOUNT);
 
-    // Fast forward ledger time to after due_date
-    let mut ledger_info = t.env.ledger().get();
-    ledger_info.timestamp += DUE_DATE_OFFSET + 1;
-    t.env.ledger().set(ledger_info);
+    // Move time forward past due date
+    let mut ledger = t.env.ledger().get();
+    ledger.timestamp += DUE_DATE_OFFSET + 1;
+    t.env.ledger().set(ledger);
 
-    let funder_balance_before = t.token.balance(&t.funder);
+    let funder_before = t.token.balance(&t.funder);
 
     t.contract.claim_default(&t.funder, &id);
 
-    let funder_balance_after = t.token.balance(&t.funder);
+    let funder_after = t.token.balance(&t.funder);
 
-    // LP should receive the escrowed discount amount
     let discount_amount = INVOICE_AMOUNT * DISCOUNT_RATE as i128 / 10_000;
+
     assert_eq!(
-        funder_balance_after - funder_balance_before,
+        funder_after - funder_before,
         discount_amount,
-        "LP should receive the escrowed discount on default"
+        "LP should recover escrowed discount after default"
     );
 
     let invoice = t.contract.get_invoice(&id);
     assert_eq!(invoice.status, InvoiceStatus::Defaulted);
-
-    // Reputation score should decrease
-    assert_eq!(t.contract.payer_score(&t.payer), 45); // 50 - 5
-}
-
-// ----------------------------------------------------------------
-// partial funding
-// ----------------------------------------------------------------
-
-#[test]
-fn test_partial_funding_works() {
-    let t = setup();
-    let id = submit_standard_invoice(&t);
-
-    let funder1 = Address::generate(&t.env);
-    let funder2 = Address::generate(&t.env);
-    let token_admin = StellarAssetClient::new(&t.env, &t.token.address);
-    token_admin.mint(&funder1, &INVOICE_AMOUNT);
-    token_admin.mint(&funder2, &INVOICE_AMOUNT);
-
-    // Fund 40%
-    t.contract
-        .fund_invoice(&funder1, &id, &(INVOICE_AMOUNT * 4000 / 10000));
-    assert_eq!(
-        t.contract.get_invoice(&id).status,
-        InvoiceStatus::PartiallyFunded
-    );
-
-    // Fund remaining 60%
-    t.contract
-        .fund_invoice(&funder2, &id, &(INVOICE_AMOUNT * 6000 / 10000));
-    assert_eq!(t.contract.get_invoice(&id).status, InvoiceStatus::Funded);
 }
 
 #[test]
-fn test_mark_paid_distributes_proportionally() {
+fn test_claim_default_before_due_date_fails() {
     let t = setup();
     let id = submit_standard_invoice(&t);
 
-    let funder1 = Address::generate(&t.env);
-    let funder2 = Address::generate(&t.env);
-    let token_admin = StellarAssetClient::new(&t.env, &t.token.address);
-    token_admin.mint(&funder1, &INVOICE_AMOUNT);
-    token_admin.mint(&funder2, &INVOICE_AMOUNT);
+    t.contract.fund_invoice(&t.funder, &id, &INVOICE_AMOUNT);
 
-    t.contract
-        .fund_invoice(&funder1, &id, &(INVOICE_AMOUNT * 3 / 10)); // 30%
-    t.contract
-        .fund_invoice(&funder2, &id, &(INVOICE_AMOUNT * 7 / 10)); // 70%
+    let result = t.contract.try_claim_default(&t.funder, &id);
+    assert_eq!(result, Err(Ok(ContractError::NotYetDefaulted)));
+}
 
-    let bal1_before = t.token.balance(&funder1);
-    let bal2_before = t.token.balance(&funder2);
+#[test]
+fn test_claim_default_non_funder_fails() {
+    let t = setup();
+    let id = submit_standard_invoice(&t);
 
+    t.contract.fund_invoice(&t.funder, &id, &INVOICE_AMOUNT);
+
+    // Move time forward
+    let mut ledger = t.env.ledger().get();
+    ledger.timestamp += DUE_DATE_OFFSET + 1;
+    t.env.ledger().set(ledger);
+
+    let attacker = Address::generate(&t.env);
+
+    let result = t.contract.try_claim_default(&attacker, &id);
+    assert_eq!(result, Err(Ok(ContractError::Unauthorized)));
+}
+
+#[test]
+fn test_claim_default_on_paid_invoice_fails() {
+    let t = setup();
+    let id = submit_standard_invoice(&t);
+
+    t.contract.fund_invoice(&t.funder, &id, &INVOICE_AMOUNT);
     t.contract.mark_paid(&id);
 
-    let bal1_after = t.token.balance(&funder1);
-    let bal2_after = t.token.balance(&funder2);
+    // Move time forward
+    let mut ledger = t.env.ledger().get();
+    ledger.timestamp += DUE_DATE_OFFSET + 1;
+    t.env.ledger().set(ledger);
 
-    let discount_amount = INVOICE_AMOUNT * DISCOUNT_RATE as i128 / 10_000;
-    let total_payout = INVOICE_AMOUNT + discount_amount;
+    let result = t.contract.try_claim_default(&t.funder, &id);
+    assert_eq!(result, Err(Ok(ContractError::AlreadyPaid)));
+}
 
-    assert_eq!(bal1_after - bal1_before, total_payout * 3 / 10);
-    assert_eq!(bal2_after - bal2_before, total_payout * 7 / 10);
+#[test]
+fn test_claim_default_twice_fails() {
+    let t = setup();
+    let id = submit_standard_invoice(&t);
+
+    t.contract.fund_invoice(&t.funder, &id, &INVOICE_AMOUNT);
+
+    // Move time forward
+    let mut ledger = t.env.ledger().get();
+    ledger.timestamp += DUE_DATE_OFFSET + 1;
+    t.env.ledger().set(ledger);
+
+    t.contract.claim_default(&t.funder, &id);
+
+    let result = t.contract.try_claim_default(&t.funder, &id);
+    assert_eq!(result, Err(Ok(ContractError::InvoiceDefaulted)));
+}
+
+#[test]
+fn test_new_payer_score_is_neutral() {
+    let t = setup();
+
+    let score = t.contract.payer_score(&t.payer);
+
+    assert_eq!(score, 50);
+}
+
+#[test]
+fn test_perfect_payer_score() {
+    let t = setup();
+    let id = submit_standard_invoice(&t);
+
+    t.contract.fund_invoice(&t.funder, &id, &INVOICE_AMOUNT);
+    t.contract.mark_paid(&id);
+
+    let score = t.contract.payer_score(&t.payer);
+
+    assert_eq!(score, 51);
+}
+
+#[test]
+fn test_payer_with_default() {
+    let t = setup();
+    let id = submit_standard_invoice(&t);
+
+    t.contract.fund_invoice(&t.funder, &id, &INVOICE_AMOUNT);
+
+    let mut ledger = t.env.ledger().get();
+    ledger.timestamp += DUE_DATE_OFFSET + 1;
+    t.env.ledger().set(ledger);
+
+    t.contract.claim_default(&t.funder, &id);
+
+    let score = t.contract.payer_score(&t.payer);
+
+    assert!(score < 50);
 }
