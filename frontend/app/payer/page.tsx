@@ -4,10 +4,12 @@ import { rpc, TransactionBuilder } from "@stellar/stellar-sdk";
 import { useCallback, useEffect, useState } from "react";
 import Footer from "../../components/Footer";
 import Navbar from "../../components/Navbar";
+import { TokenAmount } from "../../components/TokenSelector";
 import { RPC_URL } from "../../constants";
 import { useToast } from "../../context/ToastContext";
 import { useWallet } from "../../context/WalletContext";
-import { formatAddress, formatDate, formatUSDC } from "../../utils/format";
+import { useApprovedTokens } from "../../hooks/useApprovedTokens";
+import { formatAddress, formatDate, formatTokenAmount } from "../../utils/format";
 import { getAllInvoices, Invoice, markPaid } from "../../utils/soroban";
 
 const server = new rpc.Server(RPC_URL);
@@ -62,6 +64,7 @@ function DaysChip({ due_date }: { due_date: bigint }) {
 
 interface SettleModalProps {
   invoice: Invoice;
+  token: ReturnType<typeof useApprovedTokens>["tokens"][number] | null;
   isSettling: boolean;
   onConfirm: () => void;
   onCancel: () => void;
@@ -69,6 +72,7 @@ interface SettleModalProps {
 
 function SettleConfirmModal({
   invoice,
+  token,
   isSettling,
   onConfirm,
   onCancel,
@@ -117,15 +121,16 @@ function SettleConfirmModal({
             <Row label="Invoice ID" value={`#${invoice.id.toString()}`} mono />
             <Row label="Freelancer" value={formatAddress(invoice.freelancer)} mono />
             <Row label="Due Date" value={formatDate(invoice.due_date)} />
+            {token ? <Row label="Settlement token" value={token.symbol} bold /> : null}
           </div>
 
           <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-sm space-y-2">
             <p className="text-xs font-bold uppercase tracking-widest text-primary mb-3">
               Payment summary
             </p>
-            <Row label="Amount you will send" value={formatUSDC(invoice.amount)} bold />
+            <Row label="Amount you will send" value={token ? formatTokenAmount(invoice.amount, token) : invoice.amount.toString()} bold />
             <p className="text-xs text-on-surface-variant pt-1">
-              USDC will be transferred from your wallet to the contract, which
+              The invoice token will be transferred from your wallet to the contract, which
               immediately releases it to the liquidity provider.
             </p>
           </div>
@@ -262,6 +267,7 @@ function SortTh({
 export default function PayerDashboard() {
   const { address, isConnected, connect, signTx } = useWallet();
   const { addToast, updateToast } = useToast();
+  const { tokenMap, defaultToken } = useApprovedTokens();
 
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(false);
@@ -285,7 +291,11 @@ export default function PayerDashboard() {
   }, [isConnected, address]);
 
   useEffect(() => {
-    fetchData();
+    const timer = setTimeout(() => {
+      void fetchData();
+    }, 0);
+
+    return () => clearTimeout(timer);
   }, [fetchData]);
 
   // ── Derived invoice list ──────────────────────────────────────────────────
@@ -295,19 +305,24 @@ export default function PayerDashboard() {
       (inv.status === "Funded" || justPaid.has(inv.id.toString()))
   );
 
-  const sortedInvoices = [...myInvoices].sort((a: any, b: any) => {
-    const av = a[sortKey];
-    const bv = b[sortKey];
+  const sortedInvoices = [...myInvoices].sort((a, b) => {
+    const av = a[sortKey] as string | number | bigint | undefined;
+    const bv = b[sortKey] as string | number | bigint | undefined;
     if (av < bv) return sortOrder === "asc" ? -1 : 1;
     if (av > bv) return sortOrder === "asc" ? 1 : -1;
     return 0;
   });
 
   const overdueCount = myInvoices.filter((inv) => isOverdue(inv.due_date)).length;
-  const totalOwed = myInvoices.reduce(
-    (sum, inv) => (justPaid.has(inv.id.toString()) ? sum : sum + inv.amount),
-    BigInt(0)
-  );
+  const totalsByToken = myInvoices.reduce((acc, inv) => {
+    if (justPaid.has(inv.id.toString())) {
+      return acc;
+    }
+
+    const tokenId = inv.token ?? defaultToken?.contractId ?? "";
+    acc.set(tokenId, (acc.get(tokenId) ?? 0n) + inv.amount);
+    return acc;
+  }, new Map<string, bigint>());
 
   const toggleSort = (key: keyof Invoice) => {
     if (sortKey === key) {
@@ -367,11 +382,12 @@ export default function PayerDashboard() {
       } else {
         throw new Error(`Failed to send transaction: ${sendResult.status}`);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "An unknown error occurred";
       updateToast(toastId, {
         type: "error",
         title: "Settlement failed",
-        message: err.message || "An unknown error occurred",
+        message,
       });
     } finally {
       setIsSettling(false);
@@ -379,7 +395,7 @@ export default function PayerDashboard() {
   };
 
   return (
-    <main className="min-h-screen">
+    <main id="payer-settlement-page" className="min-h-screen">
       <Navbar />
 
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
@@ -434,8 +450,19 @@ export default function PayerDashboard() {
               <p className="text-xs text-on-surface-variant">Pending invoices</p>
             </div>
             <div>
-              <p className="text-2xl font-bold text-on-surface">{formatUSDC(totalOwed)}</p>
-              <p className="text-xs text-on-surface-variant">Total outstanding</p>
+              <div className="flex flex-wrap gap-2">
+                {Array.from(totalsByToken.entries()).map(([tokenId, amount]) => {
+                  const token = tokenMap.get(tokenId) ?? defaultToken;
+                  if (!token) return null;
+
+                  return (
+                    <span key={tokenId} className="text-sm font-bold text-on-surface">
+                      <TokenAmount amount={formatTokenAmount(amount, token)} token={token} />
+                    </span>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-on-surface-variant">Total outstanding by token</p>
             </div>
             {overdueCount > 0 && (
               <div>
@@ -560,7 +587,7 @@ export default function PayerDashboard() {
                           {/* Amount */}
                           <td className="px-6 py-5">
                             <span className={`font-bold text-sm ${overdue && !paid ? "text-red-500" : "text-on-surface"}`}>
-                              {formatUSDC(invoice.amount)}
+                              <InvoiceAmount invoice={invoice} amount={invoice.amount} tokenMap={tokenMap} defaultToken={defaultToken} />
                             </span>
                           </td>
 
@@ -649,6 +676,7 @@ export default function PayerDashboard() {
       {selectedInvoice && (
         <SettleConfirmModal
           invoice={selectedInvoice}
+          token={tokenMap.get(selectedInvoice.token ?? defaultToken?.contractId ?? "") ?? defaultToken}
           isSettling={isSettling}
           onConfirm={confirmSettle}
           onCancel={() => !isSettling && setSelectedInvoice(null)}
@@ -656,4 +684,24 @@ export default function PayerDashboard() {
       )}
     </main>
   );
+}
+
+function InvoiceAmount({
+  invoice,
+  amount,
+  tokenMap,
+  defaultToken,
+}: {
+  invoice: Invoice;
+  amount: bigint;
+  tokenMap: Map<string, ReturnType<typeof useApprovedTokens>["tokens"][number]>;
+  defaultToken: ReturnType<typeof useApprovedTokens>["defaultToken"];
+}) {
+  const token = tokenMap.get(invoice.token ?? defaultToken?.contractId ?? "") ?? defaultToken;
+
+  if (!token) {
+    return <>{amount.toString()}</>;
+  }
+
+  return <TokenAmount amount={formatTokenAmount(amount, token)} token={token} />;
 }

@@ -68,7 +68,7 @@ exports[`Invoice detail snapshots > matches the detail view for Defaulted status
         <dd
           class="font-bold"
         >
-          $450.00
+          450 USDC
         </dd>
       </div>
       <div
@@ -168,7 +168,7 @@ exports[`Invoice detail snapshots > matches the detail view for Funded status 1`
         <dd
           class="font-bold"
         >
-          $225.00
+          225 USDC
         </dd>
       </div>
       <div
@@ -268,7 +268,7 @@ exports[`Invoice detail snapshots > matches the detail view for Paid status 1`] 
         <dd
           class="font-bold"
         >
-          $97.50
+          97.5 USDC
         </dd>
       </div>
       <div
@@ -368,7 +368,7 @@ exports[`Invoice detail snapshots > matches the detail view for PartiallyFunded 
         <dd
           class="font-bold"
         >
-          $310.00
+          310 USDC
         </dd>
       </div>
       <div
@@ -468,7 +468,7 @@ exports[`Invoice detail snapshots > matches the detail view for Pending status 1
         <dd
           class="font-bold"
         >
-          $150.00
+          150 USDC
         </dd>
       </div>
       <div

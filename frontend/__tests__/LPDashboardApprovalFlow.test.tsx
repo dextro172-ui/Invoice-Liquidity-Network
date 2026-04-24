@@ -3,6 +3,11 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import LPDashboard from "../components/LPDashboard";
 
+const approvedTokens = [
+  { contractId: "token-usdc", name: "USD Coin", symbol: "USDC", decimals: 7, iconLabel: "US" },
+  { contractId: "token-eurc", name: "Euro Coin", symbol: "EURC", decimals: 7, iconLabel: "EU" },
+];
+
 const mockInvoice = {
   id: 1n,
   freelancer: "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF",
@@ -11,6 +16,7 @@ const mockInvoice = {
   due_date: 1_900_000_000n,
   discount_rate: 300,
   status: "Pending",
+  token: "token-usdc",
 };
 
 const getAllInvoices = vi.fn();
@@ -31,10 +37,20 @@ vi.mock("../context/ToastContext", () => ({
   }),
 }));
 
+vi.mock("../hooks/useApprovedTokens", () => ({
+  useApprovedTokens: () => ({
+    tokens: approvedTokens,
+    tokenMap: new Map(approvedTokens.map((token) => [token.contractId, token])),
+    defaultToken: approvedTokens[0],
+    isLoading: false,
+    error: null,
+  }),
+}));
+
 vi.mock("../utils/soroban", () => ({
   getAllInvoices: (...args: unknown[]) => getAllInvoices(...args),
-  getUsdcAllowance: (...args: unknown[]) => getUsdcAllowance(...args),
-  buildApproveUsdcTransaction: vi.fn(),
+  getTokenAllowance: (...args: unknown[]) => getUsdcAllowance(...args),
+  buildApproveTokenTransaction: vi.fn(),
   fundInvoice: vi.fn(),
   submitSignedTransaction: vi.fn(),
   getPayerScoresBatch: vi.fn(async () => new Map()),
@@ -75,6 +91,7 @@ describe("LPDashboard approval flow", () => {
       expect(screen.getByText("Step 1: Approve USDC")).toBeInTheDocument();
     });
 
+    expect(screen.getByText("Approve exactly 100 USDC for the ILN contract.")).toBeInTheDocument();
     expect(screen.getByText((content) => content.includes("Approve exactly"))).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Approve USDC" })).toBeInTheDocument();
   });

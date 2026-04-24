@@ -7,3 +7,6 @@ target
 
 # Environment files
 .env
+
+node_modules/
+sdk/node_modules/

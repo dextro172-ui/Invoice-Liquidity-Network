@@ -4,6 +4,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import LPDashboard from "../components/LPDashboard";
 import { FIXTURE_ADDRESSES, allInvoiceFixtures, invoiceFixtures } from "./fixtures/invoices";
 
+const approvedTokens = [
+  { contractId: "token-usdc", name: "USD Coin", symbol: "USDC", decimals: 7, iconLabel: "US" },
+  { contractId: "token-eurc", name: "Euro Coin", symbol: "EURC", decimals: 7, iconLabel: "EU" },
+];
+
 const walletState = {
   address: FIXTURE_ADDRESSES.lp,
   isConnected: true,
@@ -31,14 +36,24 @@ vi.mock("../context/ToastContext", () => ({
   }),
 }));
 
+vi.mock("../hooks/useApprovedTokens", () => ({
+  useApprovedTokens: () => ({
+    tokens: approvedTokens,
+    tokenMap: new Map(approvedTokens.map((token) => [token.contractId, token])),
+    defaultToken: approvedTokens[0],
+    isLoading: false,
+    error: null,
+  }),
+}));
+
 vi.mock("../utils/soroban", async () => {
   const actual = await vi.importActual<typeof import("../utils/soroban")>("../utils/soroban");
 
   return {
     ...actual,
     getAllInvoices: (...args: unknown[]) => getAllInvoices(...args),
-    getUsdcAllowance: (...args: unknown[]) => getUsdcAllowance(...args),
-    buildApproveUsdcTransaction: vi.fn(),
+    getTokenAllowance: (...args: unknown[]) => getUsdcAllowance(...args),
+    buildApproveTokenTransaction: vi.fn(),
     fundInvoice: vi.fn(),
     submitSignedTransaction: vi.fn(),
   };

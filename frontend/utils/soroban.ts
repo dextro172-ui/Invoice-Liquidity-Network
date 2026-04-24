@@ -10,7 +10,7 @@ import {
     TransactionBuilder,
     xdr
 } from "@stellar/stellar-sdk";
-import { CONTRACT_ID, NETWORK_PASSPHRASE, RPC_URL, TESTNET_USDC_TOKEN_ID } from "../constants";
+import { CONTRACT_ID, NETWORK_PASSPHRASE, RPC_URL, TESTNET_EURC_TOKEN_ID, TESTNET_USDC_TOKEN_ID } from "../constants";
 
 const server = new rpc.Server(RPC_URL);
 const READ_ACCOUNT = "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF";
@@ -28,12 +28,33 @@ export interface Invoice {
   status: string;
   funder?: string;
   funded_at?: bigint;
+  token?: string;
 }
 
 export interface SubmittedInvoiceResult {
   invoiceId: bigint;
   txHash: string;
 }
+
+export interface TokenMetadata {
+  contractId: string;
+  name: string;
+  symbol: string;
+  decimals: number;
+}
+
+const KNOWN_TOKEN_METADATA: Record<string, Omit<TokenMetadata, "contractId">> = {
+  [TESTNET_USDC_TOKEN_ID]: {
+    name: "USD Coin",
+    symbol: "USDC",
+    decimals: 7,
+  },
+  [TESTNET_EURC_TOKEN_ID]: {
+    name: "Euro Coin",
+    symbol: "EURC",
+    decimals: 7,
+  },
+};
 
 function buildReadTransaction(contractId: string, method: string, params: xdr.ScVal[]) {
   return new TransactionBuilder(new Account(READ_ACCOUNT, "0"), {
@@ -82,17 +103,18 @@ export async function getInvoice(id: bigint): Promise<Invoice> {
       status: parseStatus(native.status),
       funder: native.funder,
       funded_at: native.funded_at,
+      token: native.token,
     };
   } else {
     throw new Error(`Failed to get invoice ${id}`);
   }
 }
 
-function parseStatus(status: any): string {
-  if (typeof status === 'object') {
+function parseStatus(status: unknown): string {
+  if (status && typeof status === "object") {
     return Object.keys(status)[0];
   }
-  return status;
+  return String(status);
 }
 
 export async function getAllInvoices(): Promise<Invoice[]> {
@@ -109,7 +131,7 @@ export async function getAllInvoices(): Promise<Invoice[]> {
       invoices.push(invoice);
       i++;
       consecutiveFailures = 0; // reset on success
-    } catch (e) {
+    } catch {
       // If i=1 and it fails, it might mean there are no invoices at all
       // or the contract doesn't have any data yet.
       consecutiveFailures++;
@@ -132,7 +154,6 @@ export async function fundInvoice(funder: string, invoice_id: bigint) {
     nativeToScVal(await getInvoiceRequiredFunding(invoice_id), { type: "i128" }),
   ];
 
-  const funderAddress = Address.fromString(funder);
   const account = await server.getAccount(funder);
   
   const tx = new TransactionBuilder(account, {
@@ -280,17 +301,66 @@ export async function submitInvoiceTransaction({
 }
 
 export async function getUsdcBalance(address: string, tokenId = TESTNET_USDC_TOKEN_ID): Promise<bigint> {
+  return getTokenBalance(address, tokenId);
+}
+
+export async function getApprovedTokenIds(): Promise<string[]> {
+  const callResult = await server.simulateTransaction(buildReadTransaction(CONTRACT_ID, "list_tokens", []));
+
+  if (!rpc.Api.isSimulationSuccess(callResult) || !callResult.result?.retval) {
+    throw new Error("Failed to fetch approved tokens.");
+  }
+
+  const native = scValToNative(callResult.result.retval);
+  if (!Array.isArray(native)) {
+    return [];
+  }
+
+  return native.map((value) => String(value));
+}
+
+async function readTokenContractValue(tokenId: string, method: string): Promise<unknown> {
+  const callResult = await server.simulateTransaction(buildReadTransaction(tokenId, method, []));
+
+  if (!rpc.Api.isSimulationSuccess(callResult) || !callResult.result?.retval) {
+    throw new Error(`Failed to fetch token ${method}.`);
+  }
+
+  return scValToNative(callResult.result.retval);
+}
+
+export async function getTokenMetadata(tokenId: string): Promise<TokenMetadata> {
+  const fallback = KNOWN_TOKEN_METADATA[tokenId];
+  const [nameResult, symbolResult, decimalsResult] = await Promise.allSettled([
+    readTokenContractValue(tokenId, "name"),
+    readTokenContractValue(tokenId, "symbol"),
+    readTokenContractValue(tokenId, "decimals"),
+  ]);
+
+  const name = nameResult.status === "fulfilled" ? String(nameResult.value) : fallback?.name ?? "Token";
+  const symbol = symbolResult.status === "fulfilled" ? String(symbolResult.value) : fallback?.symbol ?? "TOKEN";
+  const decimalsValue = decimalsResult.status === "fulfilled" ? Number(decimalsResult.value) : fallback?.decimals ?? 7;
+
+  return {
+    contractId: tokenId,
+    name,
+    symbol,
+    decimals: Number.isFinite(decimalsValue) ? decimalsValue : 7,
+  };
+}
+
+export async function getTokenBalance(address: string, tokenId = TESTNET_USDC_TOKEN_ID): Promise<bigint> {
   const params: xdr.ScVal[] = [Address.fromString(address).toScVal()];
   const callResult = await server.simulateTransaction(buildReadTransaction(tokenId, "balance", params));
 
   if (!rpc.Api.isSimulationSuccess(callResult) || !callResult.result?.retval) {
-    throw new Error("Failed to fetch USDC balance.");
+    throw new Error("Failed to fetch token balance.");
   }
 
   return BigInt(scValToNative(callResult.result.retval));
 }
 
-export async function getUsdcAllowance({
+export async function getTokenAllowance({
   owner,
   spender = CONTRACT_ID,
   tokenId = TESTNET_USDC_TOKEN_ID,
@@ -306,13 +376,21 @@ export async function getUsdcAllowance({
   const callResult = await server.simulateTransaction(buildReadTransaction(tokenId, "allowance", params));
 
   if (!rpc.Api.isSimulationSuccess(callResult) || !callResult.result?.retval) {
-    throw new Error("Failed to fetch USDC allowance.");
+    throw new Error("Failed to fetch token allowance.");
   }
 
   return BigInt(scValToNative(callResult.result.retval));
 }
 
-export async function buildApproveUsdcTransaction({
+export async function getUsdcAllowance(args: {
+  owner: string;
+  spender?: string;
+  tokenId?: string;
+}): Promise<bigint> {
+  return getTokenAllowance(args);
+}
+
+export async function buildApproveTokenTransaction({
   owner,
   amount,
   spender = CONTRACT_ID,
@@ -348,11 +426,20 @@ export async function buildApproveUsdcTransaction({
 
   const simulated = await server.simulateTransaction(tx);
   if (!rpc.Api.isSimulationSuccess(simulated)) {
-    const message = "error" in simulated ? simulated.error : "Unable to simulate USDC approval.";
+    const message = "error" in simulated ? simulated.error : "Unable to simulate token approval.";
     throw new Error(`Simulation failed: ${message}`);
   }
 
   return rpc.assembleTransaction(tx, simulated).build();
+}
+
+export async function buildApproveUsdcTransaction(args: {
+  owner: string;
+  amount: bigint;
+  spender?: string;
+  tokenId?: string;
+}) {
+  return buildApproveTokenTransaction(args);
 }
 
 export async function submitSignedTransaction({

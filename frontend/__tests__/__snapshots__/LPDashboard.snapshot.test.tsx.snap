@@ -117,7 +117,19 @@ exports[`LPDashboard snapshots > matches the fund confirmation modal with sample
             <td
               class="px-6 py-5 font-bold"
             >
-              $150.00
+              <span
+                class="inline-flex items-center gap-2 "
+              >
+                <span
+                  aria-hidden="true"
+                  class="inline-flex h-8 w-8 items-center justify-center rounded-full border text-[11px] font-black tracking-[0.14em] bg-indigo-100 text-indigo-700 border-indigo-200 h-6 w-6 text-[9px]"
+                >
+                  US
+                </span>
+                <span>
+                  150 USDC
+                </span>
+              </span>
             </td>
             <td
               class="px-6 py-5"
@@ -136,7 +148,19 @@ exports[`LPDashboard snapshots > matches the fund confirmation modal with sample
             <td
               class="px-6 py-5 font-bold text-green-600"
             >
-              $3.75
+              <span
+                class="inline-flex items-center gap-2 "
+              >
+                <span
+                  aria-hidden="true"
+                  class="inline-flex h-8 w-8 items-center justify-center rounded-full border text-[11px] font-black tracking-[0.14em] bg-indigo-100 text-indigo-700 border-indigo-200 h-6 w-6 text-[9px]"
+                >
+                  US
+                </span>
+                <span>
+                  3.75 USDC
+                </span>
+              </span>
             </td>
             <td
               class="px-6 py-5 text-right"
@@ -168,12 +192,56 @@ exports[`LPDashboard snapshots > matches the fund confirmation modal with sample
           <p
             class="text-sm text-on-surface-variant mt-1"
           >
-            Approve USDC only when the current allowance is too low, then complete the funding transaction.
+            The funding token is fixed by the invoice. Approve it only when the current allowance is too low, then complete funding.
           </p>
         </div>
         <div
           class="p-6 space-y-4"
         >
+          <label
+            class="block"
+          >
+            <div
+              class="mb-2 flex items-center justify-between gap-3"
+            >
+              <span
+                class="text-xs font-bold uppercase tracking-[0.22em] text-on-surface-variant"
+              >
+                Invoice token
+              </span>
+            </div>
+            <div
+              class="flex items-center justify-between rounded-2xl border border-outline-variant/15 bg-surface-container-low px-4 py-3.5"
+            >
+              <div
+                class="flex items-center gap-3"
+              >
+                <span
+                  aria-hidden="true"
+                  class="inline-flex h-8 w-8 items-center justify-center rounded-full border text-[11px] font-black tracking-[0.14em] bg-indigo-100 text-indigo-700 border-indigo-200 "
+                >
+                  US
+                </span>
+                <div>
+                  <p
+                    class="text-sm font-bold text-on-surface"
+                  >
+                    USDC
+                  </p>
+                  <p
+                    class="text-xs text-on-surface-variant"
+                  >
+                    USD Coin
+                  </p>
+                </div>
+              </div>
+              <span
+                class="text-xs font-mono text-on-surface-variant"
+              >
+                token-us...
+              </span>
+            </div>
+          </label>
           <div
             class="rounded-xl border border-outline-variant/20 bg-surface-container-low p-4"
           >
@@ -196,7 +264,7 @@ exports[`LPDashboard snapshots > matches the fund confirmation modal with sample
                 <p
                   class="text-xs text-on-surface-variant mt-1"
                 >
-                  Approve exactly $150.00 for the ILN contract.
+                  Approve exactly 150 USDC for the ILN contract.
                 </p>
               </div>
             </div>
@@ -209,7 +277,7 @@ exports[`LPDashboard snapshots > matches the fund confirmation modal with sample
               <span
                 class="font-bold text-on-surface"
               >
-                $0.00
+                0 USDC
               </span>
             </div>
           </div>
@@ -249,7 +317,19 @@ exports[`LPDashboard snapshots > matches the fund confirmation modal with sample
             <span
               class="font-bold"
             >
-              $150.00
+              <span
+                class="inline-flex items-center gap-2 "
+              >
+                <span
+                  aria-hidden="true"
+                  class="inline-flex h-8 w-8 items-center justify-center rounded-full border text-[11px] font-black tracking-[0.14em] bg-indigo-100 text-indigo-700 border-indigo-200 h-6 w-6 text-[9px]"
+                >
+                  US
+                </span>
+                <span>
+                  150 USDC
+                </span>
+              </span>
             </span>
           </div>
           <div
@@ -259,7 +339,19 @@ exports[`LPDashboard snapshots > matches the fund confirmation modal with sample
               Freelancer receives immediately:
             </span>
             <span>
-              $146.25
+              <span
+                class="inline-flex items-center gap-2 "
+              >
+                <span
+                  aria-hidden="true"
+                  class="inline-flex h-8 w-8 items-center justify-center rounded-full border text-[11px] font-black tracking-[0.14em] bg-indigo-100 text-indigo-700 border-indigo-200 h-6 w-6 text-[9px]"
+                >
+                  US
+                </span>
+                <span>
+                  146.25 USDC
+                </span>
+              </span>
             </span>
           </div>
           <div
@@ -273,7 +365,19 @@ exports[`LPDashboard snapshots > matches the fund confirmation modal with sample
             <span
               class="font-bold"
             >
-              $150.00
+              <span
+                class="inline-flex items-center gap-2 "
+              >
+                <span
+                  aria-hidden="true"
+                  class="inline-flex h-8 w-8 items-center justify-center rounded-full border text-[11px] font-black tracking-[0.14em] bg-indigo-100 text-indigo-700 border-indigo-200 h-6 w-6 text-[9px]"
+                >
+                  US
+                </span>
+                <span>
+                  150 USDC
+                </span>
+              </span>
             </span>
           </div>
           <div
@@ -287,7 +391,19 @@ exports[`LPDashboard snapshots > matches the fund confirmation modal with sample
             <span
               class="font-bold text-green-600"
             >
-              $3.75 (2.50%)
+              <span
+                class="inline-flex items-center gap-2 "
+              >
+                <span
+                  aria-hidden="true"
+                  class="inline-flex h-8 w-8 items-center justify-center rounded-full border text-[11px] font-black tracking-[0.14em] bg-indigo-100 text-indigo-700 border-indigo-200 h-6 w-6 text-[9px]"
+                >
+                  US
+                </span>
+                <span>
+                  3.75 USDC (2.50%)
+                </span>
+              </span>
             </span>
           </div>
           <div
@@ -442,7 +558,19 @@ exports[`LPDashboard snapshots > matches the invoice table discovery state with 
             <td
               class="px-6 py-5 font-bold"
             >
-              $150.00
+              <span
+                class="inline-flex items-center gap-2 "
+              >
+                <span
+                  aria-hidden="true"
+                  class="inline-flex h-8 w-8 items-center justify-center rounded-full border text-[11px] font-black tracking-[0.14em] bg-indigo-100 text-indigo-700 border-indigo-200 h-6 w-6 text-[9px]"
+                >
+                  US
+                </span>
+                <span>
+                  150 USDC
+                </span>
+              </span>
             </td>
             <td
               class="px-6 py-5"
@@ -461,7 +589,19 @@ exports[`LPDashboard snapshots > matches the invoice table discovery state with 
             <td
               class="px-6 py-5 font-bold text-green-600"
             >
-              $3.75
+              <span
+                class="inline-flex items-center gap-2 "
+              >
+                <span
+                  aria-hidden="true"
+                  class="inline-flex h-8 w-8 items-center justify-center rounded-full border text-[11px] font-black tracking-[0.14em] bg-indigo-100 text-indigo-700 border-indigo-200 h-6 w-6 text-[9px]"
+                >
+                  US
+                </span>
+                <span>
+                  3.75 USDC
+                </span>
+              </span>
             </td>
             <td
               class="px-6 py-5 text-right"
@@ -597,7 +737,19 @@ exports[`LPDashboard snapshots > matches the lp portfolio style my-funded view w
             <td
               class="px-6 py-5 font-bold"
             >
-              $450.00
+              <span
+                class="inline-flex items-center gap-2 "
+              >
+                <span
+                  aria-hidden="true"
+                  class="inline-flex h-8 w-8 items-center justify-center rounded-full border text-[11px] font-black tracking-[0.14em] bg-indigo-100 text-indigo-700 border-indigo-200 h-6 w-6 text-[9px]"
+                >
+                  US
+                </span>
+                <span>
+                  450 USDC
+                </span>
+              </span>
             </td>
             <td
               class="px-6 py-5"
@@ -616,7 +768,19 @@ exports[`LPDashboard snapshots > matches the lp portfolio style my-funded view w
             <td
               class="px-6 py-5 font-bold text-green-600"
             >
-              $29.25
+              <span
+                class="inline-flex items-center gap-2 "
+              >
+                <span
+                  aria-hidden="true"
+                  class="inline-flex h-8 w-8 items-center justify-center rounded-full border text-[11px] font-black tracking-[0.14em] bg-indigo-100 text-indigo-700 border-indigo-200 h-6 w-6 text-[9px]"
+                >
+                  US
+                </span>
+                <span>
+                  29.25 USDC
+                </span>
+              </span>
             </td>
             <td
               class="px-6 py-5 text-right"
@@ -657,7 +821,19 @@ exports[`LPDashboard snapshots > matches the lp portfolio style my-funded view w
             <td
               class="px-6 py-5 font-bold"
             >
-              $310.00
+              <span
+                class="inline-flex items-center gap-2 "
+              >
+                <span
+                  aria-hidden="true"
+                  class="inline-flex h-8 w-8 items-center justify-center rounded-full border text-[11px] font-black tracking-[0.14em] bg-indigo-100 text-indigo-700 border-indigo-200 h-6 w-6 text-[9px]"
+                >
+                  US
+                </span>
+                <span>
+                  310 USDC
+                </span>
+              </span>
             </td>
             <td
               class="px-6 py-5"
@@ -676,7 +852,19 @@ exports[`LPDashboard snapshots > matches the lp portfolio style my-funded view w
             <td
               class="px-6 py-5 font-bold text-green-600"
             >
-              $16.28
+              <span
+                class="inline-flex items-center gap-2 "
+              >
+                <span
+                  aria-hidden="true"
+                  class="inline-flex h-8 w-8 items-center justify-center rounded-full border text-[11px] font-black tracking-[0.14em] bg-indigo-100 text-indigo-700 border-indigo-200 h-6 w-6 text-[9px]"
+                >
+                  US
+                </span>
+                <span>
+                  16.275 USDC
+                </span>
+              </span>
             </td>
             <td
               class="px-6 py-5 text-right"
@@ -717,7 +905,19 @@ exports[`LPDashboard snapshots > matches the lp portfolio style my-funded view w
             <td
               class="px-6 py-5 font-bold"
             >
-              $225.00
+              <span
+                class="inline-flex items-center gap-2 "
+              >
+                <span
+                  aria-hidden="true"
+                  class="inline-flex h-8 w-8 items-center justify-center rounded-full border text-[11px] font-black tracking-[0.14em] bg-sky-100 text-sky-700 border-sky-200 h-6 w-6 text-[9px]"
+                >
+                  EU
+                </span>
+                <span>
+                  225 EURC
+                </span>
+              </span>
             </td>
             <td
               class="px-6 py-5"
@@ -736,7 +936,19 @@ exports[`LPDashboard snapshots > matches the lp portfolio style my-funded view w
             <td
               class="px-6 py-5 font-bold text-green-600"
             >
-              $9.00
+              <span
+                class="inline-flex items-center gap-2 "
+              >
+                <span
+                  aria-hidden="true"
+                  class="inline-flex h-8 w-8 items-center justify-center rounded-full border text-[11px] font-black tracking-[0.14em] bg-sky-100 text-sky-700 border-sky-200 h-6 w-6 text-[9px]"
+                >
+                  EU
+                </span>
+                <span>
+                  9 EURC
+                </span>
+              </span>
             </td>
             <td
               class="px-6 py-5 text-right"
@@ -777,7 +989,19 @@ exports[`LPDashboard snapshots > matches the lp portfolio style my-funded view w
             <td
               class="px-6 py-5 font-bold"
             >
-              $97.50
+              <span
+                class="inline-flex items-center gap-2 "
+              >
+                <span
+                  aria-hidden="true"
+                  class="inline-flex h-8 w-8 items-center justify-center rounded-full border text-[11px] font-black tracking-[0.14em] bg-sky-100 text-sky-700 border-sky-200 h-6 w-6 text-[9px]"
+                >
+                  EU
+                </span>
+                <span>
+                  97.5 EURC
+                </span>
+              </span>
             </td>
             <td
               class="px-6 py-5"
@@ -796,7 +1020,19 @@ exports[`LPDashboard snapshots > matches the lp portfolio style my-funded view w
             <td
               class="px-6 py-5 font-bold text-green-600"
             >
-              $2.93
+              <span
+                class="inline-flex items-center gap-2 "
+              >
+                <span
+                  aria-hidden="true"
+                  class="inline-flex h-8 w-8 items-center justify-center rounded-full border text-[11px] font-black tracking-[0.14em] bg-sky-100 text-sky-700 border-sky-200 h-6 w-6 text-[9px]"
+                >
+                  EU
+                </span>
+                <span>
+                  2.925 EURC
+                </span>
+              </span>
             </td>
             <td
               class="px-6 py-5 text-right"

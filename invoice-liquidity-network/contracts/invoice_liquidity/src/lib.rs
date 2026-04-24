@@ -4,7 +4,8 @@ mod errors;
 mod invoice;
 
 use soroban_sdk::{
-    contract, contractimpl, symbol_short, token::Client as TokenClient, Address, Env, Vec,
+    contract, contractimpl, symbol_short, vec, Address, Env, IntoVal, Symbol,
+    token::Client as TokenClient, Vec,
 };
 
 use errors::ContractError;
@@ -82,6 +83,14 @@ impl InvoiceLiquidityContract {
         env.storage()
             .instance()
             .set(&StorageKey::MaxDiscountRate, &rate);
+    }
+
+    pub fn set_distribution_contract(env: Env, distribution_contract: Address) {
+        let admin: Address = env.storage().instance().get(&StorageKey::Admin).unwrap();
+        admin.require_auth();
+        env.storage()
+            .instance()
+            .set(&StorageKey::DistributionContract, &distribution_contract);
     }
 
     pub fn add_token(env: Env, token: Address) {
@@ -313,6 +322,8 @@ impl InvoiceLiquidityContract {
 
         save_invoice(&env, &invoice);
 
+        notify_distribution_funding(&env, &funder, fund_amount);
+
         #[allow(deprecated)]
         env.events()
             .publish((symbol_short!("funded"),), (invoice_id, funder));
@@ -379,13 +390,7 @@ impl InvoiceLiquidityContract {
             InvoiceStatus::Funded => {}
         }
 
-        // Calculate total payout to all funders (principal + yield)
-        let discount_amount = invoice
-            .amount
-            .checked_mul(discount_rate_as_i128(invoice.discount_rate))
-            .unwrap_or(0)
-            / 10_000;
-        let total_to_distribute = invoice.amount + discount_amount;
+        let funder = invoice.funder.clone().ok_or(ContractError::NotFunded)?;
 
         let token = token_client(&env, &invoice.token);
         let contract_address = env.current_contract_address();
@@ -393,17 +398,24 @@ impl InvoiceLiquidityContract {
         // Payer sends full invoice amount to the contract
         token.transfer(&invoice.payer, &contract_address, &invoice.amount);
 
-        // Distribute proportionally
-        let funders = get_invoice_funders(&env, invoice_id);
-        for i in 0..funders.len() {
-            let (funder_addr, contribution) = funders.get(i).unwrap();
-            let share = (contribution * total_to_distribute) / invoice.amount;
-            token.transfer(&contract_address, &funder_addr, &share);
-        }
+        // Calculate the discount amount that was kept in escrow
+        let discount_amount = invoice.amount
+            .checked_mul(discount_rate_as_i128(invoice.discount_rate))
+            .unwrap_or(0)
+            / 10_000;
 
+        // Contract releases the full amount + the escrowed discount to the LP
+        // LP receives: their escrowed discount + the payer's settlement
+        // Total = invoice.amount + discount_amount
+        token.transfer(&contract_address, &funder, &(invoice.amount + discount_amount));
+
+        // ---- Update invoice ----
         invoice.status = InvoiceStatus::Paid;
 
         save_invoice(&env, &invoice);
+
+        let paid_on_time = env.ledger().timestamp() <= invoice.due_date;
+        notify_distribution_settlement(&env, &invoice.freelancer, &invoice.payer, paid_on_time);
 
         // --- Update payer reputation ---
         let current_score = get_payer_score(&env, &invoice.payer);
@@ -597,11 +609,53 @@ fn is_approved_token(env: &Env, token: &Address) -> bool {
         .unwrap_or(false)
 }
 
+fn notify_distribution_funding(env: &Env, lp: &Address, amount_usdc_equivalent: i128) {
+    let Some(dist_contract) = env
+        .storage()
+        .instance()
+        .get::<_, Address>(&StorageKey::DistributionContract)
+    else {
+        return;
+    };
+
+    let args = vec![
+        env,
+        lp.clone().into_val(env),
+        amount_usdc_equivalent.into_val(env)
+    ];
+    env.invoke_contract::<()>(&dist_contract, &Symbol::new(env, "accrue_lp"), args);
+}
+
+fn notify_distribution_settlement(
+    env: &Env,
+    freelancer: &Address,
+    payer: &Address,
+    settled_on_time: bool,
+) {
+    let Some(dist_contract) = env
+        .storage()
+        .instance()
+        .get::<_, Address>(&StorageKey::DistributionContract)
+    else {
+        return;
+    };
+
+    let args = vec![
+        env,
+        freelancer.clone().into_val(env),
+        payer.clone().into_val(env),
+        settled_on_time.into_val(env)
+    ];
+    env.invoke_contract::<()>(&dist_contract, &Symbol::new(env, "accrue_settlement"), args);
+}
+
 // ----------------------------------------------------------------
 // TEST MODULES
 // ----------------------------------------------------------------
 
 mod test;
+mod tests_benchmarks;
 mod tests_multi_token;
 mod tests_security;
 mod tests_protocol_fee;
+mod tests_distribution;
