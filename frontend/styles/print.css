@@ -1,0 +1,178 @@
+@media print {
+  @page {
+    size: A4;
+    margin: 15mm;
+  }
+
+  body {
+    background: white !important;
+    color: #1e212b !important;
+    font-size: 12pt;
+  }
+
+  nav,
+  header,
+  footer,
+  .no-print {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  .print-hide {
+    display: none !important;
+  }
+
+  .print-invoice-container {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: white !important;
+  }
+
+  .print-invoice-header {
+    display: flex !important;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24pt;
+    padding-bottom: 16pt;
+    border-bottom: 2px solid #e5e7eb;
+  }
+
+  .print-logo {
+    font-size: 24pt;
+    font-weight: 700;
+    color: #6366f1;
+  }
+
+  .print-logo-subtitle {
+    font-size: 9pt;
+    color: #6b7280;
+    margin-top: 4pt;
+  }
+
+  .print-qr-container {
+    text-align: right;
+  }
+
+  .print-invoice-title {
+    font-size: 18pt;
+    font-weight: 600;
+    margin: 16pt 0;
+    color: #1e212b;
+  }
+
+  .print-details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12pt;
+    margin: 16pt 0;
+  }
+
+  .print-detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2pt;
+  }
+
+  .print-detail-label {
+    font-size: 8pt;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #6b7280;
+  }
+
+  .print-detail-value {
+    font-size: 12pt;
+    font-weight: 500;
+    color: #1e212b;
+  }
+
+  .print-status-badge {
+    display: inline-block;
+    padding: 4pt 12pt;
+    border-radius: 9999px;
+    font-size: 9pt;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .print-status-paid {
+    background: #d1fae5;
+    color: #059669;
+  }
+
+  .print-status-defaulted {
+    background: #fef3c7;
+    color: #d97706;
+  }
+
+  .print-status-funded {
+    background: #e0e7ff;
+    color: #4f46e5;
+  }
+
+  .print-status-open {
+    background: #f3f4f6;
+    color: #6b7280;
+  }
+
+  .print-activity-section {
+    margin-top: 24pt;
+    padding-top: 16pt;
+    border-top: 1px solid #e5e7eb;
+  }
+
+  .print-activity-title {
+    font-size: 11pt;
+    font-weight: 600;
+    margin-bottom: 12pt;
+    color: #1e212b;
+  }
+
+  .print-activity-item {
+    display: flex;
+    gap: 12pt;
+    padding: 8pt 0;
+    border-bottom: 1px dashed #e5e7eb;
+  }
+
+  .print-activity-date {
+    font-size: 9pt;
+    color: #6b7280;
+    min-width: 80pt;
+  }
+
+  .print-activity-content {
+    font-size: 10pt;
+    color: #1e212b;
+  }
+
+  .print-footer {
+    margin-top: 32pt;
+    padding-top: 12pt;
+    border-top: 1px solid #e5e7eb;
+    font-size: 8pt;
+    color: #6b7280;
+    text-align: center;
+  }
+
+  a {
+    text-decoration: none !important;
+    color: inherit !important;
+  }
+
+  .break-all {
+    word-break: break-all;
+  }
+}
+
+.print-only {
+  display: none;
+}
