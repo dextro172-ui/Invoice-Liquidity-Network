@@ -654,8 +654,7 @@ fn notify_distribution_settlement(
 // ----------------------------------------------------------------
 
 mod test;
-mod tests_benchmarks;
-mod tests_multi_token;
+mod tests_arithmetic;
 mod tests_security;
 mod tests_protocol_fee;
 mod tests_distribution;
