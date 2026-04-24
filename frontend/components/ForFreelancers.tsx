@@ -1,21 +1,23 @@
 "use client";
 
+import { useTranslation } from "react-i18next";
 import SubmitInvoiceForm from "./SubmitInvoiceForm";
 
 export default function ForFreelancers() {
+  const { t } = useTranslation();
+
   const features = [
     {
-      title: "Instant Liquidity",
-      description: "Sell invoices and get funds in minutes, not months.",
+      title: t("landing.freelancerFeatures.instantLiquidity"),
+      description: t("landing.freelancerFeatures.instantLiquidityDesc"),
     },
     {
-      title: "Transparent Pricing",
-      description: "You set the discount rate you're comfortable with.",
+      title: t("landing.freelancerFeatures.transparentPricing"),
+      description: t("landing.freelancerFeatures.transparentPricingDesc"),
     },
     {
-      title: "Global Market",
-      description:
-        "Access liquidity providers from around the world via Stellar.",
+      title: t("landing.freelancerFeatures.globalMarket"),
+      description: t("landing.freelancerFeatures.globalMarketDesc"),
     },
   ];
 
@@ -24,10 +26,10 @@ export default function ForFreelancers() {
       <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-20 items-center">
         <div>
           <h2 className="text-4xl font-headline mb-6">
-            Get paid today, not in 90 days.
+            {t("landing.forFreelancersTitle")}
           </h2>
           <p className="text-on-surface-variant text-base max-w-xl mb-8 leading-relaxed">
-            This form is the on-chain entry point for freelancers in ILN. Connect Freighter, price the invoice, and publish it directly to the Soroban contract on Stellar testnet.
+            {t("landing.forFreelancersSubtitle")}
           </p>
           <ul className="space-y-6">
             {features.map((feature, index) => (

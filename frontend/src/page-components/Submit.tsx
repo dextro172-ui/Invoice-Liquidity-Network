@@ -1,11 +1,12 @@
 "use client";
 
+import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import SubmitInvoiceForm from "../../components/SubmitInvoiceForm";
 
-export default function SubmitPage() {
+function SubmitContent() {
   const searchParams = useSearchParams();
   
   const prefillId = searchParams.get("prefill_id");
@@ -28,8 +29,24 @@ export default function SubmitPage() {
           />
         </div>
       </section>
-
+      
       <Footer />
     </main>
+  );
+}
+
+function SubmitLoading() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
+}
+
+export default function SubmitPage() {
+  return (
+    <Suspense fallback={<SubmitLoading />}>
+      <SubmitContent />
+    </Suspense>
   );
 }

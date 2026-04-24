@@ -1,19 +1,22 @@
+"use client";
+
+import { useTranslation } from "react-i18next";
+
 export default function HowItWorks() {
+  const { t } = useTranslation();
+
   const steps = [
     {
-      title: "Submit Invoice",
-      description:
-        "Freelancers upload verified invoices with a set discount rate for immediate purchase.",
+      title: t("landing.steps.submitInvoice"),
+      description: t("landing.steps.submitInvoiceDesc"),
     },
     {
-      title: "Fund as LP",
-      description:
-        "Liquidity Providers purchase invoices at the discounted rate using USDC on Stellar.",
+      title: t("landing.steps.fundAsLP"),
+      description: t("landing.steps.fundAsLPDesc"),
     },
     {
-      title: "Protocol Settle",
-      description:
-        "When the payer settles the invoice, the full amount is distributed to the LP automatically.",
+      title: t("landing.steps.protocolSettle"),
+      description: t("landing.steps.protocolSettleDesc"),
     },
   ];
 
@@ -21,7 +24,7 @@ export default function HowItWorks() {
     <section className="bg-surface-container-low py-24 px-8 overflow-hidden">
       <div className="max-w-7xl mx-auto">
         <h2 className="text-4xl font-headline mb-16 text-center">
-          How ILN works
+          {t("landing.howItWorksTitle")}
         </h2>
         <div className="grid md:grid-cols-3 gap-12 relative mb-24">
           {steps.map((step, index) => (
@@ -37,14 +40,13 @@ export default function HowItWorks() {
           ))}
         </div>
 
-        {/* Flow Diagram */}
         <div className="bg-surface-container-highest p-8 md:p-12 rounded-xl flex flex-col md:flex-row items-center justify-between gap-8 border border-outline-variant/40">
           <div className="text-center">
             <div className="text-xs font-bold mb-2 uppercase text-on-surface-variant">
-              Liquidity Provider
+              {t("landing.flowDiagram.liquidityProvider")}
             </div>
             <div className="text-2xl font-headline font-medium">$1,000</div>
-            <div className="text-xs text-primary mt-1">Capital Out</div>
+            <div className="text-xs text-primary mt-1">{t("landing.flowDiagram.capitalOut")}</div>
           </div>
           <div className="flex-1 h-[2px] bg-outline-variant relative flex items-center justify-center w-full">
             <span className="absolute right-0 w-2 h-2 bg-outline-variant rotate-45 border-t border-r -mr-1"></span>
@@ -54,20 +56,20 @@ export default function HowItWorks() {
           </div>
           <div className="text-center">
             <div className="text-xs font-bold mb-2 uppercase text-on-surface-variant">
-              Freelancer
+              {t("landing.flowDiagram.freelancer")}
             </div>
             <div className="text-2xl font-headline font-medium">$970</div>
-            <div className="text-xs text-primary mt-1">Instant Cash</div>
+            <div className="text-xs text-primary mt-1">{t("landing.flowDiagram.instantCash")}</div>
           </div>
           <div className="flex-1 h-[2px] bg-outline-variant relative flex items-center justify-center w-full">
             <span className="absolute right-0 w-2 h-2 bg-outline-variant rotate-45 border-t border-r -mr-1"></span>
           </div>
           <div className="text-center">
             <div className="text-xs font-bold mb-2 uppercase text-on-surface-variant">
-              Payer Settles
+              {t("landing.flowDiagram.payerSettles")}
             </div>
             <div className="text-2xl font-headline font-medium">$1,000</div>
-            <div className="text-xs text-primary mt-1">To LP</div>
+            <div className="text-xs text-primary mt-1">{t("landing.flowDiagram.toLP")}</div>
           </div>
         </div>
       </div>

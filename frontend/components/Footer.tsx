@@ -1,4 +1,10 @@
+"use client";
+
+import { useTranslation } from "react-i18next";
+
 export default function Footer() {
+  const { t } = useTranslation();
+
   return (
     <footer className="bg-primary-container py-16 px-8">
       <div className="max-w-7xl mx-auto">
@@ -6,8 +12,7 @@ export default function Footer() {
           <div className="col-span-1 md:col-span-2">
             <div className="text-2xl font-bold text-primary mb-6">ILN</div>
             <p className="text-on-primary-container/70 max-w-xs mb-8 font-body text-sm leading-relaxed">
-              The decentralized standard for invoice liquidity. Built for the
-              modern workforce.
+              {t("footer.tagline")}
             </p>
             <div className="flex gap-4">
               <a
@@ -28,54 +33,54 @@ export default function Footer() {
           </div>
           <div>
             <h5 className="text-xs font-bold uppercase tracking-widest text-on-primary-container mb-6">
-              Network
+              {t("footer.network")}
             </h5>
             <ul className="space-y-4 text-sm text-on-primary-container/80">
               <li>
                 <a className="hover:text-on-primary-container transition-colors" href="#">
-                  How it works
+                  {t("footer.howItWorks")}
                 </a>
               </li>
               <li>
                 <a className="hover:text-on-primary-container transition-colors" href="#">
-                  For Freelancers
+                  {t("footer.forFreelancers")}
                 </a>
               </li>
               <li>
                 <a className="hover:text-on-primary-container transition-colors" href="#">
-                  For LPs
+                  {t("footer.forLPs")}
                 </a>
               </li>
               <li>
                 <a className="hover:text-on-primary-container transition-colors" href="#">
-                  Dashboard
+                  {t("footer.dashboard")}
                 </a>
               </li>
             </ul>
           </div>
           <div>
             <h5 className="text-xs font-bold uppercase tracking-widest text-on-primary-container mb-6">
-              Developers
+              {t("footer.developers")}
             </h5>
             <ul className="space-y-4 text-sm text-on-primary-container/80">
               <li>
                 <a className="hover:text-on-primary-container transition-colors" href="#">
-                  Documentation
+                  {t("footer.documentation")}
                 </a>
               </li>
               <li>
                 <a className="hover:text-on-primary-container transition-colors" href="#">
-                  GitHub Repository
+                  {t("footer.githubRepository")}
                 </a>
               </li>
               <li>
                 <a className="hover:text-on-primary-container transition-colors" href="#">
-                  Technical Specs
+                  {t("footer.technicalSpecs")}
                 </a>
               </li>
               <li>
                 <a className="hover:text-on-primary-container transition-colors" href="#">
-                  Open Source Policy
+                  {t("footer.openSourcePolicy")}
                 </a>
               </li>
             </ul>
@@ -83,11 +88,11 @@ export default function Footer() {
         </div>
         <div className="pt-8 border-t border-on-primary-container/10 flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] font-bold uppercase tracking-[0.2em] text-on-primary-container/60">
           <div className="flex items-center gap-4">
-            <span>Built on Stellar</span>
+            <span>{t("footer.builtOnStellar")}</span>
             <span>•</span>
-            <span>MIT License</span>
+            <span>{t("footer.mitLicense")}</span>
           </div>
-          <div>© 2024 Invoice Liquidity Network.</div>
+          <div>{t("footer.copyright")}</div>
         </div>
       </div>
     </footer>

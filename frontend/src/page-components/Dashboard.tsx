@@ -273,7 +273,7 @@ export default function DashboardPage() {
                                     payer: invoice.payer,
                                     amount: (Number(invoice.amount) / 10_000_000).toString(),
                                     discount: (invoice.discount_rate / 100).toString(),
-                                    token: invoice.tokenId || "",
+                                    token: invoice.token || "",
                                   }
                                 }}
                                 className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-on-surface hover:bg-surface-container-highest transition-colors w-full text-left"

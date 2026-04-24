@@ -5,6 +5,7 @@ import { ToastProvider } from "../context/ToastContext";
 import { WalletProvider } from "../context/WalletContext";
 import OnboardingFlow from "../components/onboarding/OnboardingFlow";
 import NetworkBanner from "../components/NetworkBanner";
+import I18nProvider from "../components/I18nProvider";
 
 const manrope = Manrope({
   variable: "--font-manrope",
@@ -55,17 +56,19 @@ export default function RootLayout({
       <body
         className={`${manrope.variable} ${newsreader.variable} antialiased bg-background text-foreground transition-colors duration-300 selection:bg-primary-container selection:text-on-primary-container`}
       >
-        <ToastProvider>
-          <WalletProvider>
-            <div className="min-h-screen flex flex-col">
-              <NetworkBanner />
-              <div className="flex-1">
-                {children}
+        <I18nProvider>
+          <ToastProvider>
+            <WalletProvider>
+              <div className="min-h-screen flex flex-col">
+                <NetworkBanner />
+                <div className="flex-1">
+                  {children}
+                </div>
               </div>
-            </div>
-            <OnboardingFlow />
-          </WalletProvider>
-        </ToastProvider>
+              <OnboardingFlow />
+            </WalletProvider>
+          </ToastProvider>
+        </I18nProvider>
       </body>
     </html>
   );

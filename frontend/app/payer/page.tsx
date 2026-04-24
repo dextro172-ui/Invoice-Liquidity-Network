@@ -11,6 +11,7 @@ import { useWallet } from "../../context/WalletContext";
 import { useApprovedTokens } from "../../hooks/useApprovedTokens";
 import { formatAddress, formatDate, formatTokenAmount } from "../../utils/format";
 import { getAllInvoices, Invoice, markPaid } from "../../utils/soroban";
+import TokenSelector, { TokenAmount } from "../../components/TokenSelector";
 
 const server = new rpc.Server(RPC_URL);
 
@@ -274,6 +275,7 @@ export default function PayerDashboard() {
   const sortedInvoices = [...myInvoices].sort((a, b) => {
     const av = a[sortKey] as string | number | bigint | undefined;
     const bv = b[sortKey] as string | number | bigint | undefined;
+    if (av === undefined || bv === undefined) return 0;
     if (av < bv) return sortOrder === "asc" ? -1 : 1;
     if (av > bv) return sortOrder === "asc" ? 1 : -1;
     return 0;

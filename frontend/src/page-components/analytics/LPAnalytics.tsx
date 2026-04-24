@@ -1,21 +1,21 @@
 "use client";
 
 import React, { useEffect, useState, useMemo, useCallback } from "react";
-import Navbar from "../../components/Navbar";
-import Footer from "../../components/Footer";
-import { useWallet } from "../../context/WalletContext";
-import { getAllInvoices, Invoice } from "../../utils/soroban";
-import { formatUSDC } from "../../utils/format";
+import Navbar from "../../../components/Navbar";
+import Footer from "../../../components/Footer";
+import { useWallet } from "../../../context/WalletContext";
+import { getAllInvoices, Invoice } from "../../../utils/soroban";
+import { formatUSDC } from "../../../utils/format";
 import {
   calculateLPMetrics,
   getMonthlyYieldData,
   getCapitalVsYieldData,
   getOutcomeBreakdown,
   getPayerPerformance,
-} from "../../utils/lp-analytics";
-import MetricCard from "../../components/analytics/MetricCard";
-import { YieldBarChart, CapitalLineChart, OutcomePieChart } from "../../components/analytics/LPCharts";
-import PayerPerformanceTable from "../../components/analytics/PayerPerformanceTable";
+} from "../../../utils/lp-analytics";
+import MetricCard from "../../../components/analytics/MetricCard";
+import { YieldBarChart, CapitalLineChart, OutcomePieChart } from "../../../components/analytics/LPCharts";
+import PayerPerformanceTable from "../../../components/analytics/PayerPerformanceTable";
 
 const LPAnalyticsPage = () => {
   const { address, isConnected, connect } = useWallet();

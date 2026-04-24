@@ -93,7 +93,7 @@ export default function InvoiceDetailPage({ id }: InvoiceDetailPageProps) {
                       payer: invoice.payer,
                       amount: (Number(invoice.amount) / 10_000_000).toString(),
                       discount: (invoice.discount_rate / 100).toString(),
-                      token: invoice.tokenId || "",
+                      token: invoice.token || "",
                     }
                   }}
                   className="inline-flex items-center gap-2 rounded-2xl bg-primary px-6 py-3.5 text-sm font-bold text-surface-container-lowest shadow-lg hover:bg-primary/90 transition-all active:scale-[0.98]"

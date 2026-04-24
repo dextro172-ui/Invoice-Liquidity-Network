@@ -1,41 +1,47 @@
+"use client";
+
+import { useTranslation } from "react-i18next";
+
 export default function Hero() {
+  const { t } = useTranslation();
+
   return (
     <header className="pt-32 pb-20 px-8 bg-primary-container relative overflow-hidden">
       <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
         <div className="z-10">
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-surface-container-lowest/20 rounded-full text-xs font-bold text-on-primary-container mb-6 tracking-wide uppercase">
             <span className="material-symbols-outlined text-[14px]">sensors</span>
-            Testnet Live
+            {t("landing.testnetLive")}
           </div>
-          <h1 className="text-5xl lg:text-7xl font-medium text-on-primary-container leading-[1.1] mb-6 font-headline">
-            Turn unpaid invoices into <span className="italic">instant</span>{" "}
-            liquidity
-          </h1>
+          <h1
+            className="text-5xl lg:text-7xl font-medium text-on-primary-container leading-[1.1] mb-6 font-headline"
+            dangerouslySetInnerHTML={{
+              __html: t("landing.heroTitle", { interpolationEscapeValue: false })
+            }}
+          />
           <p className="text-lg text-on-primary-container/80 max-w-xl mb-10 leading-relaxed font-body">
-            ILN is an open-source invoice factoring protocol on Stellar. Get
-            paid today by selling your receivables to global liquidity providers
-            at a fair discount.
+            {t("landing.heroSubtitle")}
           </p>
           <div className="flex flex-wrap gap-4 mb-12">
             <button className="bg-primary text-surface-container-lowest px-8 py-4 rounded-lg font-bold flex items-center gap-2 hover:translate-y-[-2px] transition-transform">
-              Submit an Invoice
+              {t("landing.submitInvoice")}
               <span className="material-symbols-outlined">arrow_forward</span>
             </button>
             <button className="border-2 border-outline-variant/40 text-on-primary-container px-8 py-4 rounded-lg font-bold hover:bg-surface-container-lowest/10 transition-colors">
-              Fund Invoices as LP
+              {t("landing.fundAsLP")}
             </button>
           </div>
           <div className="flex items-center gap-8 text-on-primary-container/60">
             <div className="flex items-center gap-2">
               <span className="material-symbols-outlined text-sm">verified</span>
               <span className="text-xs font-bold uppercase tracking-widest">
-                Built on Stellar
+                {t("landing.builtOnStellar")}
               </span>
             </div>
             <div className="flex items-center gap-2">
               <span className="material-symbols-outlined text-sm">code</span>
               <span className="text-xs font-bold uppercase tracking-widest">
-                Open Source
+                {t("landing.openSource")}
               </span>
             </div>
           </div>
@@ -54,7 +60,7 @@ export default function Hero() {
                     person
                   </span>
                   <span className="text-[10px] font-bold uppercase">
-                    Freelancer
+                    {t("landing.flowDiagram.freelancer")}
                   </span>
                 </div>
                 <div className="flex items-center justify-center">

@@ -1,0 +1,265 @@
+{
+  "common": {
+    "connect": "Conectar",
+    "disconnect": "Desconectar",
+    "submit": "Enviar",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Éxito",
+    "refresh": "Actualizar",
+    "fund": "Financiar",
+    "copy": "Copiar",
+    "close": "Cerrar"
+  },
+  "nav": {
+    "howItWorks": "Cómo funciona",
+    "forFreelancers": "Para Freelancers",
+    "forLPs": "Para Inversores",
+    "governance": "Gobernanza",
+    "payInvoices": "Pagar Facturas",
+    "dashboard": "Panel",
+    "analytics": "Analíticas",
+    "docs": "Documentos"
+  },
+  "landing": {
+    "testnetLive": "Testnet Activo",
+    "heroTitle": "Convierte facturas impagadas en <bold>liquidez</bold> instantánea",
+    "heroSubtitle": "ILN es un protocolo abierto de factoraje de facturas en Stellar. Cobra hoy mismo vendiendo tus cuentas por cobrar a proveedores de liquidez globales a un descuento justo.",
+    "submitInvoice": "Enviar una Factura",
+    "fundAsLP": "Financiar como Inversor",
+    "builtOnStellar": "Construido en Stellar",
+    "openSource": "Código Abierto",
+    "howItWorksTitle": "Cómo funciona ILN",
+    "steps": {
+      "submitInvoice": "Enviar Factura",
+      "submitInvoiceDesc": "Los freelancers suben facturas verificadas con una tasa de descuento fija para venta inmediata.",
+      "fundAsLP": "Financiar como Inversor",
+      "fundAsLPDesc": "Los Proveedores de Liquidez compran facturas al precio con descuento usando USDC en Stellar.",
+      "protocolSettle": "Liquidación del Protocolo",
+      "protocolSettleDesc": "Cuando el pagador liquida la factura, el monto completo se distribuye al Inversor automáticamente."
+    },
+    "flowDiagram": {
+      "liquidityProvider": "Proveedor de Liquidez",
+      "capitalOut": "Capital Salida",
+      "freelancer": "Freelancer",
+      "instantCash": "Efectivo Instantáneo",
+      "payerSettles": "Pagador Liquida",
+      "toLP": "Al Inversor"
+    },
+    "forFreelancersTitle": "Cobra hoy, no en 90 días.",
+    "forFreelancersSubtitle": "Este formulario es el punto de entrada en cadena para freelancers en ILN. Conecta Freighter, fija el precio de la factura y publícala directamente en el contrato Soroban en Stellar testnet.",
+    "freelancerFeatures": {
+      "instantLiquidity": "Liquidez Instantánea",
+      "instantLiquidityDesc": "Vende facturas y recibe fondos en minutos, no en meses.",
+      "transparentPricing": "Precios Transparentes",
+      "transparentPricingDesc": "Tú estableces la tasa de descuento con la que te sientas cómodo.",
+      "globalMarket": "Mercado Global",
+      "globalMarketDesc": "Accede a proveedores de liquidez de todo el mundo a través de Stellar."
+    },
+    "forLPsTitle": "Gana rendimiento real respaldado por negocio real.",
+    "lpFeatures": {
+      "realWorldAssets": "Activos del Mundo Real",
+      "realWorldAssetsDesc": "Diversifica tus tenencias de criptomonedas en factoraje de facturas, un mercado global de $3T.",
+      "superiorYields": "Rendimientos Superiores",
+      "superiorYieldsDesc": "Captura diferenciales que superan ampliamente los protocolos DeFi estándar.",
+      "trustlessSettlements": "Liquidaciones Sin Confianza",
+      "trustlessSettlementsDesc": "Los contratos inteligentes manejan el depósito en garantía y la distribución en Stellar."
+    },
+    "lpHowItWorksTitle": "Cómo funciona para los Inversores",
+    "lpHowItWorksDesc": "Cuando financies una factura, tu USDC se mantiene en un contrato inteligente Soroban seguro. El freelancer recibe sus fondos (menos el descuento) inmediatamente. Una vez que el pagador liquide la factura, el monto completo se libera a ti, incluyendo el descuento como tu rendimiento ganado."
+  },
+  "footer": {
+    "tagline": "El estándar descentralizado para liquidez de facturas. Construido para la fuerza laboral moderna.",
+    "network": "Red",
+    "developers": "Desarrolladores",
+    "howItWorks": "Cómo funciona",
+    "forFreelancers": "Para Freelancers",
+    "forLPs": "Para Inversores",
+    "dashboard": "Panel",
+    "documentation": "Documentación",
+    "githubRepository": "Repositorio GitHub",
+    "technicalSpecs": "Especificaciones Técnicas",
+    "openSourcePolicy": "Política de Código Abierto",
+    "builtOnStellar": "Construido en Stellar",
+    "mitLicense": "Licencia MIT",
+    "copyright": "© 2024 Invoice Liquidity Network."
+  },
+  "submitForm": {
+    "title": "Enviar una nueva factura en Stellar testnet",
+    "subtitle": "Conecta Freighter, ingresa la billetera del pagador, elige un token aprobado y publica una factura con una vista previa instantánea del rendimiento para ti y los proveedores de liquidez.",
+    "freelancerPortal": "Portal del Freelancer",
+    "wallet": "Billetera",
+    "wrongNetwork": "Red incorrecta",
+    "connectFreighter": "Conectar billetera Freighter",
+    "disconnect": "Desconectar",
+    "payerLabel": "Dirección Stellar del pagador",
+    "payerHint": "Usa la dirección de la cuenta pública del pagador en Stellar testnet.",
+    "tokenLabel": "Token de liquidación",
+    "loadingTokens": "Cargando tokens aprobados del contrato...",
+    "tokensHint": "Los tokens aprobados se obtienen dinámicamente del registro de tokens de ILN.",
+    "amountLabel": "Monto de la factura",
+    "dueDateLabel": "Fecha de vencimiento",
+    "discountRateLabel": "Tasa de descuento (%)",
+    "discountRateHint": "El diferencial que un proveedor de liquidez gana cuando el pagador liquida en su totalidad.",
+    "submissionSuccess": "Envío exitoso",
+    "returnedInvoiceId": "ID de factura devuelto",
+    "copyInvoiceId": "Copiar ID de factura",
+    "txHash": "Hash de transacción",
+    "submitInvoice": "Enviar factura",
+    "submitting": "Enviando factura...",
+    "prefilled": "Prefiltrado desde factura #{{id}}",
+    "preview": {
+      "title": "Vista previa de rendimiento en vivo",
+      "invoiceFaceValue": "Valor nominal de la factura",
+      "freelancerPayout": "Pago al freelancer",
+      "lpYield": "Rendimiento del inversor al liquidación",
+      "discountRate": "Tasa de descuento"
+    },
+    "previewNote": "El envío está limitado a {{network}}. El token seleccionado se envía en cadena usando los decimales del contrato de ese token, y el pagador debe liquidar después con el mismo activo.",
+    "walletError": "Freighter debe estar conectado a {{network}}.",
+    "noTokensAvailable": "No hay tokens aprobados disponibles actualmente.",
+    "reviewFormValues": "Por favor revisa los valores del formulario e intenta de nuevo."
+  },
+  "freelancer": {
+    "pageTitle": "Panel de Facturas",
+    "pageSubtitle": "Envía facturas impagadas al protocolo ILN y cobra anticipadamente de los proveedores de liquidez — todo en Stellar testnet.",
+    "tabs": {
+      "submitInvoice": "Enviar Factura",
+      "myInvoices": "Mis Facturas"
+    },
+    "submit": {
+      "cardTitle": "Enviar una Nueva Factura",
+      "cardSubtitle": "Completa los detalles a continuación. Tu billetera Freighter firmará la transacción.",
+      "connectFirst": "Conecta tu billetera primero",
+      "connectFirstDesc": "Necesitas Freighter para enviar facturas en Stellar testnet.",
+      "connectFreighter": "Conectar Freighter",
+      "successTitle": "¡Factura enviada exitosamente!",
+      "successDesc": "Tu ID de factura es <id>#{{id}}</id>. Cambia a \"Mis Facturas\" para hacer seguimiento a su estado.",
+      "payerLabel": "Dirección Stellar del Pagador",
+      "amountLabel": "Monto de Factura (USDC)",
+      "dueDateLabel": "Fecha de Vencimiento",
+      "discountLabel": "Tasa de Descuento (%)",
+      "discountHint": "El descuento que un Inversor gana por pago anticipado (ej. 5 = 5%).",
+      "preview": {
+        "youReceive": "Tú recibes (neto)",
+        "lpYield": "Rendimiento del inversor",
+        "due": "Vence"
+      },
+      "submittingToStellar": "Enviando a Stellar…"
+    },
+    "invoices": {
+      "title": "Mis Facturas",
+      "subtitle": "Mostrando facturas enviadas desde tu billetera. Se actualiza automáticamente cada 30 s.",
+      "connectToView": "Conecta tu billetera para ver facturas",
+      "connectDesc": "Solo se muestran facturas enviadas desde tu dirección.",
+      "loadingInvoices": "Cargando facturas de Stellar…",
+      "noInvoicesFound": "No se encontraron facturas para tu dirección.",
+      "submitFirst": "Envía tu primera factura →",
+      "headers": {
+        "id": "ID",
+        "payer": "Pagador",
+        "amount": "Monto",
+        "discount": "Descuento",
+        "dueDate": "Fecha Vencimiento",
+        "status": "Estado"
+      }
+    },
+    "validation": {
+      "payerRequired": "Ingresa una dirección Stellar válida (56 caracteres).",
+      "amountRequired": "Ingresa un monto USDC positivo.",
+      "dueDateRequired": "Selecciona una fecha de vencimiento.",
+      "dueDateFuture": "La fecha de vencimiento debe ser futura.",
+      "discountRange": "Ingresa una tasa de descuento entre 0 y 100."
+    },
+    "toast": {
+      "submitting": "Enviando Factura…",
+      "submitted": "¡Factura Enviada!",
+      "submissionFailed": "Envío Fallido",
+      "unknownError": "Ocurrió un error desconocido."
+    }
+  },
+  "lpDashboard": {
+    "title": "Panel del Inversor",
+    "subtitle": "Explora y financia facturas para ganar rendimiento.",
+    "tabs": {
+      "discovery": "Descubrir",
+      "watchlist": "Lista de Seguimiento",
+      "myFunded": "Mis Financiadas"
+    },
+    "tableHeaders": {
+      "id": "ID",
+      "freelancer": "Freelancer",
+      "amount": "Monto",
+      "discount": "Descuento",
+      "dueDate": "Fecha Vencimiento",
+      "estYield": "Rend. Est.",
+      "added": "Agregado",
+      "risk": "Riesgo"
+    },
+    "loading": "Cargando facturas de Stellar...",
+    "noInvoices": {
+      "discovery": "pendientes",
+      "watchlist": "guardadas",
+      "myFunded": "financiadas"
+    },
+    "noInvoicesFound": "No se encontraron facturas {{type}}.",
+    "watchlist": {
+      "add": "Agregar a lista de seguimiento",
+      "remove": "Quitar de lista de seguimiento"
+    },
+    "alreadyFunded": "Ya financiada",
+    "modal": {
+      "fundTitle": "Financiar Factura #{{id}}",
+      "fundSubtitle": "El token de financiamiento está fijo por la factura. Apruébalo solo cuando el allowance actual es muy bajo, luego completa el financiamiento.",
+      "tokenLabel": "Token de la factura",
+      "step1Approve": {
+        "title": "Paso 1: Aprobar {{token}}",
+        "checkingAllowance": "Verificando allowance actual...",
+        "approveExact": "Aprueba exactamente {{amount}} para el contrato ILN.",
+        "currentAllowance": "Allowance actual"
+      },
+      "step1Fund": {
+        "title": "Paso 1: Financiar Factura",
+        "description": "Envía el principal de la factura una vez que el contrato ILN pueda gastar tu {{token}}."
+      },
+      "step2Fund": {
+        "title": "Paso 2: Financiar Factura",
+        "description": "Envía el principal de la factura una vez que el contrato ILN pueda gastar tu {{token}}."
+      },
+      "allowanceOk": "El allowance ya cubre esta factura. Puedes ir directamente al financiamiento.",
+      "youWillSend": "Tú enviarás:",
+      "freelancerReceives": "El freelancer recibe inmediatamente:",
+      "youReceiveSettlement": "Tú recibes al liquidar:",
+      "yourYield": "Tu rendimiento (descuento):",
+      "estimatedDue": "Fecha de vencimiento estimada:",
+      "cancel": "Cancelar",
+      "approveToken": "Aprobar {{token}}",
+      "fundInvoice": "Financiar Factura",
+      "checkingAllowance": "Verificando allowance...",
+      "approving": "Aprobando {{token}}...",
+      "funding": "Financiando..."
+    },
+    "toast": {
+      "addedWatchlist": "Agregado a Lista de Seguimiento",
+      "removedWatchlist": "Eliminado de Lista de Seguimiento",
+      "watchlistError": "Error de Lista de Seguimiento",
+      "approving": "Aprobando {{token}}...",
+      "approved": "{{token}} aprobado",
+      "allowanceUpdated": "Allowance actualizado para {{amount}}.",
+      "approvalFailed": "Aprobación fallida",
+      "funding": "Financiando Factura...",
+      "funded": "Financiada Exitosamente",
+      "fundingFailed": "Financiamiento Fallido",
+      "claimingDefault": "Reclamando incumplimiento para #{{id}}...",
+      "defaultClaimed": "Incumplimiento reclamado",
+      "claimFailed": "Reclamo fallido"
+    }
+  },
+  "language": {
+    "select": "Seleccionar idioma",
+    "en": "English",
+    "es": "Español"
+  }
+}

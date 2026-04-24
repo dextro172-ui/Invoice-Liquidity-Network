@@ -1,0 +1,265 @@
+{
+  "common": {
+    "connect": "Connect",
+    "disconnect": "Disconnect",
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "save": "Save",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "refresh": "Refresh",
+    "fund": "Fund",
+    "copy": "Copy",
+    "close": "Close"
+  },
+  "nav": {
+    "howItWorks": "How it works",
+    "forFreelancers": "For Freelancers",
+    "forLPs": "For LPs",
+    "governance": "Governance",
+    "payInvoices": "Pay Invoices",
+    "dashboard": "Dashboard",
+    "analytics": "Analytics",
+    "docs": "Docs"
+  },
+  "landing": {
+    "testnetLive": "Testnet Live",
+    "heroTitle": "Turn unpaid invoices into <bold>instant</bold> liquidity",
+    "heroSubtitle": "ILN is an open-source invoice factoring protocol on Stellar. Get paid today by selling your receivables to global liquidity providers at a fair discount.",
+    "submitInvoice": "Submit an Invoice",
+    "fundAsLP": "Fund Invoices as LP",
+    "builtOnStellar": "Built on Stellar",
+    "openSource": "Open Source",
+    "howItWorksTitle": "How ILN works",
+    "steps": {
+      "submitInvoice": "Submit Invoice",
+      "submitInvoiceDesc": "Freelancers upload verified invoices with a set discount rate for immediate purchase.",
+      "fundAsLP": "Fund as LP",
+      "fundAsLPDesc": "Liquidity Providers purchase invoices at the discounted rate using USDC on Stellar.",
+      "protocolSettle": "Protocol Settle",
+      "protocolSettleDesc": "When the payer settles the invoice, the full amount is distributed to the LP automatically."
+    },
+    "flowDiagram": {
+      "liquidityProvider": "Liquidity Provider",
+      "capitalOut": "Capital Out",
+      "freelancer": "Freelancer",
+      "instantCash": "Instant Cash",
+      "payerSettles": "Payer Settles",
+      "toLP": "To LP"
+    },
+    "forFreelancersTitle": "Get paid today, not in 90 days.",
+    "forFreelancersSubtitle": "This form is the on-chain entry point for freelancers in ILN. Connect Freighter, price the invoice, and publish it directly to the Soroban contract on Stellar testnet.",
+    "freelancerFeatures": {
+      "instantLiquidity": "Instant Liquidity",
+      "instantLiquidityDesc": "Sell invoices and get funds in minutes, not months.",
+      "transparentPricing": "Transparent Pricing",
+      "transparentPricingDesc": "You set the discount rate you're comfortable with.",
+      "globalMarket": "Global Market",
+      "globalMarketDesc": "Access liquidity providers from around the world via Stellar."
+    },
+    "forLPsTitle": "Earn real yield backed by real business.",
+    "lpFeatures": {
+      "realWorldAssets": "Real World Assets",
+      "realWorldAssetsDesc": "Diversify your crypto holdings into invoice factoring, a $3T global market.",
+      "superiorYields": "Superior Yields",
+      "superiorYieldsDesc": "Capture spreads far exceeding standard DeFi lending protocols.",
+      "trustlessSettlements": "Trustless Settlements",
+      "trustlessSettlementsDesc": "Smart contracts handle the escrow and distribution on Stellar."
+    },
+    "lpHowItWorksTitle": "How it works for LPs",
+    "lpHowItWorksDesc": "When you fund an invoice, your USDC is held in a secure Soroban smart contract. The freelancer receives their funds (minus the discount) immediately. Once the payer settles the invoice, the full amount is released to you, including the discount as your earned yield."
+  },
+  "footer": {
+    "tagline": "The decentralized standard for invoice liquidity. Built for the modern workforce.",
+    "network": "Network",
+    "developers": "Developers",
+    "howItWorks": "How it works",
+    "forFreelancers": "For Freelancers",
+    "forLPs": "For LPs",
+    "dashboard": "Dashboard",
+    "documentation": "Documentation",
+    "githubRepository": "GitHub Repository",
+    "technicalSpecs": "Technical Specs",
+    "openSourcePolicy": "Open Source Policy",
+    "builtOnStellar": "Built on Stellar",
+    "mitLicense": "MIT License",
+    "copyright": "© 2024 Invoice Liquidity Network."
+  },
+  "submitForm": {
+    "title": "Submit a new invoice on Stellar testnet",
+    "subtitle": "Connect Freighter, enter the payer wallet, choose an approved token, and publish an invoice with an instant yield preview for you and liquidity providers.",
+    "freelancerPortal": "Freelancer Portal",
+    "wallet": "Wallet",
+    "wrongNetwork": "Wrong network",
+    "connectFreighter": "Connect Freighter wallet",
+    "disconnect": "Disconnect",
+    "payerLabel": "Payer Stellar address",
+    "payerHint": "Use the payer's public account address on Stellar testnet.",
+    "tokenLabel": "Settlement token",
+    "loadingTokens": "Loading approved tokens from the contract...",
+    "tokensHint": "Approved tokens are fetched dynamically from the ILN token registry.",
+    "amountLabel": "Invoice amount",
+    "dueDateLabel": "Due date",
+    "discountRateLabel": "Discount rate (%)",
+    "discountRateHint": "The spread a liquidity provider earns when the payer settles in full.",
+    "submissionSuccess": "Submission successful",
+    "returnedInvoiceId": "Returned invoice ID",
+    "copyInvoiceId": "Copy invoice ID",
+    "txHash": "Transaction hash",
+    "submitInvoice": "Submit invoice",
+    "submitting": "Submitting invoice...",
+    "prefilled": "Pre-filled from invoice #{{id}}",
+    "preview": {
+      "title": "Live yield preview",
+      "invoiceFaceValue": "Invoice face value",
+      "freelancerPayout": "Freelancer payout",
+      "lpYield": "LP yield at settlement",
+      "discountRate": "Discount rate"
+    },
+    "previewNote": "Submission is limited to {{network}}. The selected token is sent on-chain using that token contract's decimals, and the payer must later settle with the same asset.",
+    "walletError": "Freighter must be connected to {{network}}.",
+    "noTokensAvailable": "No approved tokens are currently available.",
+    "reviewFormValues": "Please review the form values and try again."
+  },
+  "freelancer": {
+    "pageTitle": "Invoice Dashboard",
+    "pageSubtitle": "Submit unpaid invoices to the ILN protocol and get paid early by liquidity providers — all on Stellar testnet.",
+    "tabs": {
+      "submitInvoice": "Submit Invoice",
+      "myInvoices": "My Invoices"
+    },
+    "submit": {
+      "cardTitle": "Submit a New Invoice",
+      "cardSubtitle": "Fill in the details below. Your Freighter wallet will sign the transaction.",
+      "connectFirst": "Connect your wallet first",
+      "connectFirstDesc": "You need Freighter to submit invoices on Stellar testnet.",
+      "connectFreighter": "Connect Freighter",
+      "successTitle": "Invoice submitted successfully!",
+      "successDesc": "Your invoice ID is <id>#{{id}}</id>. Switch to \"My Invoices\" to track its status.",
+      "payerLabel": "Payer Stellar Address",
+      "amountLabel": "Invoice Amount (USDC)",
+      "dueDateLabel": "Due Date",
+      "discountLabel": "Discount Rate (%)",
+      "discountHint": "The discount an LP earns for early payment (e.g. 5 = 5%).",
+      "preview": {
+        "youReceive": "You receive (net)",
+        "lpYield": "LP yield",
+        "due": "Due"
+      },
+      "submittingToStellar": "Submitting to Stellar…"
+    },
+    "invoices": {
+      "title": "My Invoices",
+      "subtitle": "Showing invoices submitted by your wallet. Auto-refreshes every 30 s.",
+      "connectToView": "Connect your wallet to view invoices",
+      "connectDesc": "Only invoices submitted from your address are shown.",
+      "loadingInvoices": "Loading invoices from Stellar…",
+      "noInvoicesFound": "No invoices found for your address.",
+      "submitFirst": "Submit your first invoice →",
+      "headers": {
+        "id": "ID",
+        "payer": "Payer",
+        "amount": "Amount",
+        "discount": "Discount",
+        "dueDate": "Due Date",
+        "status": "Status"
+      }
+    },
+    "validation": {
+      "payerRequired": "Enter a valid Stellar address (56 characters).",
+      "amountRequired": "Enter a positive USDC amount.",
+      "dueDateRequired": "Select a due date.",
+      "dueDateFuture": "Due date must be in the future.",
+      "discountRange": "Enter a discount rate between 0 and 100."
+    },
+    "toast": {
+      "submitting": "Submitting Invoice…",
+      "submitted": "Invoice Submitted!",
+      "submissionFailed": "Submission Failed",
+      "unknownError": "An unknown error occurred."
+    }
+  },
+  "lpDashboard": {
+    "title": "LP Dashboard",
+    "subtitle": "Browse and fund invoices to earn yield.",
+    "tabs": {
+      "discovery": "Discovery",
+      "watchlist": "Watchlist",
+      "myFunded": "My Funded"
+    },
+    "tableHeaders": {
+      "id": "ID",
+      "freelancer": "Freelancer",
+      "amount": "Amount",
+      "discount": "Discount",
+      "dueDate": "Due Date",
+      "estYield": "Est. Yield",
+      "added": "Added",
+      "risk": "Risk"
+    },
+    "loading": "Loading invoices from Stellar...",
+    "noInvoices": {
+      "discovery": "pending",
+      "watchlist": "saved",
+      "myFunded": "funded"
+    },
+    "noInvoicesFound": "No {{type}} invoices found.",
+    "watchlist": {
+      "add": "Add to watchlist",
+      "remove": "Remove from watchlist"
+    },
+    "alreadyFunded": "Already funded",
+    "modal": {
+      "fundTitle": "Fund Invoice #{{id}}",
+      "fundSubtitle": "The funding token is fixed by the invoice. Approve it only when the current allowance is too low, then complete funding.",
+      "tokenLabel": "Invoice token",
+      "step1Approve": {
+        "title": "Step 1: Approve {{token}}",
+        "checkingAllowance": "Checking current allowance...",
+        "approveExact": "Approve exactly {{amount}} for the ILN contract.",
+        "currentAllowance": "Current allowance"
+      },
+      "step1Fund": {
+        "title": "Step 1: Fund Invoice",
+        "description": "Send the invoice principal once the ILN contract can spend your {{token}}."
+      },
+      "step2Fund": {
+        "title": "Step 2: Fund Invoice",
+        "description": "Send the invoice principal once the ILN contract can spend your {{token}}."
+      },
+      "allowanceOk": "Allowance already covers this invoice. You can go straight to funding.",
+      "youWillSend": "You will send:",
+      "freelancerReceives": "Freelancer receives immediately:",
+      "youReceiveSettlement": "You receive on settlement:",
+      "yourYield": "Your yield (discount):",
+      "estimatedDue": "Estimated due date:",
+      "cancel": "Cancel",
+      "approveToken": "Approve {{token}}",
+      "fundInvoice": "Fund Invoice",
+      "checkingAllowance": "Checking allowance...",
+      "approving": "Approving {{token}}...",
+      "funding": "Funding..."
+    },
+    "toast": {
+      "addedWatchlist": "Added to Watchlist",
+      "removedWatchlist": "Removed from Watchlist",
+      "watchlistError": "Watchlist Error",
+      "approving": "Approving {{token}}...",
+      "approved": "{{token}} approved",
+      "allowanceUpdated": "Allowance updated for {{amount}}.",
+      "approvalFailed": "Approval failed",
+      "funding": "Funding Invoice...",
+      "funded": "Funded Successfully",
+      "fundingFailed": "Funding Failed",
+      "claimingDefault": "Claiming default for #{{id}}...",
+      "defaultClaimed": "Default claimed",
+      "claimFailed": "Claim failed"
+    }
+  },
+  "language": {
+    "select": "Select language",
+    "en": "English",
+    "es": "Español"
+  }
+}

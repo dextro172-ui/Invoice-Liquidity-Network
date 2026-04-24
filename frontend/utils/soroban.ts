@@ -9,6 +9,7 @@ import {
   Operation,
   Account,
   BASE_FEE,
+  Transaction,
 } from "@stellar/stellar-sdk";
 import { CONTRACT_ID, NETWORK_PASSPHRASE, RPC_URL, TESTNET_EURC_TOKEN_ID, TESTNET_USDC_TOKEN_ID } from "../constants";
 
@@ -204,7 +205,7 @@ export interface SubmitInvoiceArgs {
  */
 export async function submitInvoice(
   args: SubmitInvoiceArgs
-): Promise<{ tx: ReturnType<typeof rpc.assembleTransaction>["build"] extends () => infer R ? R : never; invoiceId: bigint }> {
+): Promise<Transaction> {
   const contractAddress = CONTRACT_ID;
   const method = "submit_invoice";
 
@@ -217,6 +218,34 @@ export async function submitInvoice(
   ];
 
   const account = await server.getAccount(args.freelancer);
+
+  const tx = new TransactionBuilder(account, {
+    fee: "50000",
+    networkPassphrase: NETWORK_PASSPHRASE,
+  })
+    .addOperation(
+      Operation.invokeHostFunction({
+        func: xdr.HostFunction.hostFunctionTypeInvokeContract(
+          new xdr.InvokeContractArgs({
+            contractAddress: Address.fromString(contractAddress).toScAddress(),
+            functionName: method,
+            args: params,
+          })
+        ),
+        auth: [],
+      })
+    )
+    .setTimeout(60 * 5)
+    .build();
+
+  const sim = await server.simulateTransaction(tx);
+  if (!rpc.Api.isSimulationSuccess(sim)) {
+    throw new Error(`Simulation failed: ${sim.error}`);
+  }
+
+  const finalTx = rpc.assembleTransaction(tx, sim).build();
+  return finalTx;
+}
 
 async function getInvoiceRequiredFunding(invoiceId: bigint): Promise<bigint> {
   const invoice = await getInvoice(invoiceId);
@@ -292,31 +321,7 @@ export async function claimDefault(funder: string, invoice_id: bigint) {
 
   const sim = await server.simulateTransaction(tx);
   if (!rpc.Api.isSimulationSuccess(sim)) {
-
     throw new Error(`Simulation failed: ${(sim as any).error}`);
-  }
-
-  // Extract the predicted invoice ID from simulation retval
-  let invoiceId = BigInt(0);
-  try {
-    const raw = scValToNative(sim.result!.retval);
-    // Contract returns Result<u64, Error> — unwrap Ok variant
-    if (raw && typeof raw === "object" && "ok" in raw) {
-      invoiceId = BigInt((raw as any).ok);
-    } else if (raw && typeof raw === "object" && "Ok" in raw) {
-      invoiceId = BigInt((raw as any).Ok);
-    } else {
-      invoiceId = BigInt(raw as any);
-    }
-  } catch (_) {
-    // If we can't parse it, proceed without the ID — it'll be shown after poll
-  }
-
-  const finalTx = rpc.assembleTransaction(tx, sim).build();
-  return { tx: finalTx as any, invoiceId };
-}
-
-    throw new Error(`Simulation failed: ${sim.error}`);
   }
 
   const finalTx = rpc.assembleTransaction(tx, sim).build();
