@@ -1,18 +1,4 @@
-/**
- * Public Invoice Status Page
- * Route: /i/[id]
- *
- * A wallet-free, publicly shareable page that lets payers verify an invoice
- * is on-chain. Polls the Soroban contract every 30 s without a full reload.
- *
- * Features
- * ─────────
- * • Displays: Invoice ID, amount (USDC), token, due date, status, discount rate
- * • Privacy toggle: wallet addresses hidden by default; revealed on demand
- * • Status banners: "Paid" (green) | "Defaulted" (neutral) | others
- * • QR code linking to this page's URL
- * • Copy Link + Share on X/Twitter buttons
- */
+import InvoiceDetailPage from "@/src/pages/InvoiceDetail";
 
 "use client";
 
@@ -757,4 +743,6 @@ export default function InvoiceStatusPage({
       </main>
     </>
   );
+export default function InvoiceDetailRoute({ params }: { params: { id: string } }) {
+  return <InvoiceDetailPage id={params.id} />;
 }
