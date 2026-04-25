@@ -1,12 +1,12 @@
 #![cfg(test)]
 
 use super::*;
+use crate::invoice::{InvoiceParams, InvoiceStatus, StorageKey};
 use soroban_sdk::{
     testutils::{storage::Persistent, Address as _, Ledger},
     token::{Client as TokenClient, StellarAssetClient},
     Address, Env, Vec,
 };
-use crate::invoice::{StorageKey, InvoiceParams, InvoiceStatus};
 
 struct TestEnv {
     env: Env,
@@ -57,7 +57,7 @@ fn test_submit_invoice_sets_ttl() {
     let t = setup();
     let amount = 100_000_000;
     let due_date = t.env.ledger().timestamp() + 86400;
-    
+
     let id = t.contract.submit_invoice(
         &t.freelancer,
         &t.payer,
@@ -68,14 +68,18 @@ fn test_submit_invoice_sets_ttl() {
     );
 
     let key = StorageKey::Invoice(id);
-    let ttl = t.env.as_contract(&t.contract.address, || t.env.storage().persistent().get_ttl(&key));
-    
+    let ttl = t.env.as_contract(&t.contract.address, || {
+        t.env.storage().persistent().get_ttl(&key)
+    });
+
     // Check that TTL is set
     assert!(ttl > 0);
-    
+
     // Verify InvoiceCount TTL as well
     let count_key = StorageKey::InvoiceCount;
-    let count_ttl = t.env.as_contract(&t.contract.address, || t.env.storage().persistent().get_ttl(&count_key));
+    let count_ttl = t.env.as_contract(&t.contract.address, || {
+        t.env.storage().persistent().get_ttl(&count_key)
+    });
     assert!(count_ttl > 0);
 }
 
@@ -84,7 +88,7 @@ fn test_fund_invoice_extends_ttl() {
     let t = setup();
     let amount = 100_000_000;
     let due_date = t.env.ledger().timestamp() + 86400;
-    
+
     let id = t.contract.submit_invoice(
         &t.freelancer,
         &t.payer,
@@ -95,7 +99,9 @@ fn test_fund_invoice_extends_ttl() {
     );
 
     let key = StorageKey::Invoice(id);
-    let initial_ttl = t.env.as_contract(&t.contract.address, || t.env.storage().persistent().get_ttl(&key));
+    let initial_ttl = t.env.as_contract(&t.contract.address, || {
+        t.env.storage().persistent().get_ttl(&key)
+    });
 
     // Advance ledger state to simulate time passed (enough to cross threshold)
     let mut ledger = t.env.ledger().get();
@@ -106,8 +112,10 @@ fn test_fund_invoice_extends_ttl() {
     // Call fund_invoice which should refresh the TTL on the entry
     t.contract.fund_invoice(&t.funder, &id, &amount);
 
-    let updated_ttl = t.env.as_contract(&t.contract.address, || t.env.storage().persistent().get_ttl(&key));
-    
+    let updated_ttl = t.env.as_contract(&t.contract.address, || {
+        t.env.storage().persistent().get_ttl(&key)
+    });
+
     // TTL should be at least equal to initial, effectively extended relative to the new ledger height
     assert!(updated_ttl >= initial_ttl);
 }
@@ -117,7 +125,7 @@ fn test_data_persistence_after_advancement() {
     let t = setup();
     let amount = 100_000_000;
     let due_date = t.env.ledger().timestamp() + 86400 * 30; // 30 days
-    
+
     let id = t.contract.submit_invoice(
         &t.freelancer,
         &t.payer,
@@ -130,7 +138,7 @@ fn test_data_persistence_after_advancement() {
     // Advance ledger significantly (e.g., 10,000 ledgers)
     let mut ledger = t.env.ledger().get();
     ledger.sequence_number += 10_000;
-    ledger.timestamp += 50_000; 
+    ledger.timestamp += 50_000;
     t.env.ledger().set(ledger);
 
     // Re-read and assert correctness
@@ -142,7 +150,7 @@ fn test_data_persistence_after_advancement() {
 #[test]
 fn test_invoice_count_persistence_across_versions() {
     let t = setup();
-    
+
     t.contract.submit_invoice(
         &t.freelancer,
         &t.payer,
@@ -151,7 +159,7 @@ fn test_invoice_count_persistence_across_versions() {
         &300,
         &t.token.address,
     );
-    
+
     assert_eq!(t.contract.get_invoice_count(), 1);
 
     // Advance ledger 1 million sequences
@@ -162,7 +170,7 @@ fn test_invoice_count_persistence_across_versions() {
 
     // Counter still correct
     assert_eq!(t.contract.get_invoice_count(), 1);
-    
+
     // New submission works correctly
     let next_id = t.contract.submit_invoice(
         &t.freelancer,
@@ -172,7 +180,7 @@ fn test_invoice_count_persistence_across_versions() {
         &300,
         &t.token.address,
     );
-    
+
     assert_eq!(next_id, 2);
     assert_eq!(t.contract.get_invoice_count(), 2);
 }
@@ -182,7 +190,7 @@ fn test_storage_ttl_near_boundary() {
     let t = setup();
     let amount = 100_000_000;
     let due_date = t.env.ledger().timestamp() + 86400;
-    
+
     let id = t.contract.submit_invoice(
         &t.freelancer,
         &t.payer,
@@ -193,7 +201,9 @@ fn test_storage_ttl_near_boundary() {
     );
 
     let key = StorageKey::Invoice(id);
-    let ttl = t.env.as_contract(&t.contract.address, || t.env.storage().persistent().get_ttl(&key));
+    let ttl = t.env.as_contract(&t.contract.address, || {
+        t.env.storage().persistent().get_ttl(&key)
+    });
 
     // Advance ledger to just before TTL expiry
     // If TTL is X ledgers, advance by X-1

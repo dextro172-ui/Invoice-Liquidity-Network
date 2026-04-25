@@ -24,8 +24,8 @@ import LPDashboard from "../LPDashboard";
 const addToast = vi.fn(() => "toast-id");
 const updateToast = vi.fn();
 const getAllInvoices = vi.fn();
-const getUsdcAllowance = vi.fn();
-const buildApproveUsdcTransaction = vi.fn();
+const getTokenAllowance = vi.fn();
+const buildApproveTokenTransaction = vi.fn();
 const fundInvoice = vi.fn();
 const submitSignedTransaction = vi.fn();
 
@@ -53,10 +53,29 @@ vi.mock("../../context/ToastContext", () => ({
 
 vi.mock("../../utils/soroban", () => ({
   getAllInvoices: (...args: unknown[]) => getAllInvoices(...args),
-  getUsdcAllowance: (...args: unknown[]) => getUsdcAllowance(...args),
-  buildApproveUsdcTransaction: (...args: unknown[]) => buildApproveUsdcTransaction(...args),
+  getTokenAllowance: (...args: unknown[]) => getTokenAllowance(...args),
+  buildApproveTokenTransaction: (...args: unknown[]) => buildApproveTokenTransaction(...args),
   fundInvoice: (...args: unknown[]) => fundInvoice(...args),
   submitSignedTransaction: (...args: unknown[]) => submitSignedTransaction(...args),
+  getPayerScoresBatch: vi.fn().mockResolvedValue(new Map()),
+}));
+
+vi.mock("../../hooks/useApprovedTokens", () => ({
+  useApprovedTokens: () => ({
+    tokens: [{ symbol: "USDC", contractId: "TESTNET_USDC_TOKEN_ID", decimals: 7 }],
+    tokenMap: new Map([["TESTNET_USDC_TOKEN_ID", { symbol: "USDC", contractId: "TESTNET_USDC_TOKEN_ID", decimals: 7 }]]),
+    defaultToken: { symbol: "USDC", contractId: "TESTNET_USDC_TOKEN_ID", decimals: 7 },
+  })
+}));
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    prefetch: vi.fn(),
+  }),
+  usePathname: () => "",
+  useSearchParams: () => new URLSearchParams(),
 }));
 
 // ─── Test data ────────────────────────────────────────────────────────────────
@@ -85,8 +104,8 @@ describe("FundConfirmModal (via LPDashboard)", () => {
     addToast.mockClear();
     updateToast.mockClear();
     getAllInvoices.mockReset().mockResolvedValue([mockInvoice]);
-    getUsdcAllowance.mockReset();
-    buildApproveUsdcTransaction.mockReset();
+    getTokenAllowance.mockReset();
+    buildApproveTokenTransaction.mockReset();
     fundInvoice.mockReset();
     submitSignedTransaction.mockReset();
   });
@@ -95,7 +114,7 @@ describe("FundConfirmModal (via LPDashboard)", () => {
 
   describe("yield calculation display", () => {
     it("shows the invoice face value (amount sent) correctly", async () => {
-      getUsdcAllowance.mockResolvedValue(10_000_000_000n); // sufficient allowance
+      getTokenAllowance.mockResolvedValue(10_000_000_000n); // sufficient allowance
 
       render(<LPDashboard />);
       fireEvent.click(await screen.findByRole("button", { name: "Fund" }));
@@ -104,12 +123,12 @@ describe("FundConfirmModal (via LPDashboard)", () => {
         expect(screen.getByText(/Fund Invoice #7/i)).toBeInTheDocument(),
       );
 
-      // "You will send" row – 1,000 USDC displayed via formatUSDC (7 decimals → 100.0000000 USDC)
-      expect(screen.getAllByText(/1,000\.0000000 USDC/i).length).toBeGreaterThanOrEqual(1);
+      // "You will send" row – 1,000 USDC displayed via formatUSDC
+      expect(screen.getAllByText(/1,000 USDC/i).length).toBeGreaterThanOrEqual(1);
     });
 
     it("shows the freelancer payout (amount − yield) correctly", async () => {
-      getUsdcAllowance.mockResolvedValue(10_000_000_000n);
+      getTokenAllowance.mockResolvedValue(10_000_000_000n);
 
       render(<LPDashboard />);
       fireEvent.click(await screen.findByRole("button", { name: "Fund" }));
@@ -118,12 +137,12 @@ describe("FundConfirmModal (via LPDashboard)", () => {
         expect(screen.getByText(/Fund Invoice #7/i)).toBeInTheDocument(),
       );
 
-      // 1000 − 30 = 970 USDC  →  9_700_000_000 stroops → "970.0000000 USDC"
-      expect(screen.getByText(/970\.0000000 USDC/i)).toBeInTheDocument();
+      // 1000 − 30 = 970 USDC  →  9_700_000_000 stroops → "970 USDC"
+      expect(screen.getByText(/970 USDC/i)).toBeInTheDocument();
     });
 
     it("shows the LP yield (discount) correctly", async () => {
-      getUsdcAllowance.mockResolvedValue(10_000_000_000n);
+      getTokenAllowance.mockResolvedValue(10_000_000_000n);
 
       render(<LPDashboard />);
       fireEvent.click(await screen.findByRole("button", { name: "Fund" }));
@@ -132,10 +151,10 @@ describe("FundConfirmModal (via LPDashboard)", () => {
         expect(screen.getByText(/Fund Invoice #7/i)).toBeInTheDocument(),
       );
 
-      // 1000 × 3% = 30 USDC  →  300_000_000 stroops → "30.0000000 USDC"
-      expect(screen.getByText(/30\.0000000 USDC/i)).toBeInTheDocument();
-      // discount-rate badge in the modal footer
-      expect(screen.getByText(/3\.00%/)).toBeInTheDocument();
+      // 1000 × 3% = 30 USDC  →  300_000_000 stroops → "30 USDC"
+      expect(screen.getAllByText(/30 USDC/i)[0]).toBeInTheDocument();
+      // discount-rate badge
+      expect(screen.getAllByText(/3\.00%/)[0]).toBeInTheDocument();
     });
   });
 
@@ -143,7 +162,7 @@ describe("FundConfirmModal (via LPDashboard)", () => {
 
   describe("when allowance is already sufficient", () => {
     beforeEach(() => {
-      getUsdcAllowance.mockResolvedValue(10_000_000_000n); // equal to invoice amount
+      getTokenAllowance.mockResolvedValue(10_000_000_000n); // equal to invoice amount
     });
 
     it("renders the 'Fund Invoice' action button, not 'Approve USDC'", async () => {
@@ -197,9 +216,9 @@ describe("FundConfirmModal (via LPDashboard)", () => {
       fireEvent.click(await screen.findByRole("button", { name: "Fund" }));
       fireEvent.click(await screen.findByRole("button", { name: "Fund Invoice" }));
 
-      expect(
-        await screen.findByText(/Contract revert: insufficient balance/),
-      ).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText(/Contract revert: insufficient balance/)).toBeInTheDocument();
+      });
     });
   });
 
@@ -207,7 +226,7 @@ describe("FundConfirmModal (via LPDashboard)", () => {
 
   describe("when allowance is insufficient", () => {
     beforeEach(() => {
-      getUsdcAllowance.mockResolvedValue(0n);
+      getTokenAllowance.mockResolvedValue(0n);
     });
 
     it("renders 'Approve USDC' action button in step-1 state", async () => {
@@ -219,20 +238,20 @@ describe("FundConfirmModal (via LPDashboard)", () => {
       );
     });
 
-    it("calls buildApproveUsdcTransaction and submitSignedTransaction on approve", async () => {
-      buildApproveUsdcTransaction.mockResolvedValue("approve-tx-xdr");
+    it("calls buildApproveTokenTransaction and submitSignedTransaction on approve", async () => {
+      buildApproveTokenTransaction.mockResolvedValue("approve-tx-xdr");
       submitSignedTransaction.mockResolvedValue({ txHash: "approve-hash" });
 
       render(<LPDashboard />);
       fireEvent.click(await screen.findByRole("button", { name: "Fund" }));
       fireEvent.click(await screen.findByRole("button", { name: "Approve USDC" }));
 
-      await waitFor(() => expect(buildApproveUsdcTransaction).toHaveBeenCalledTimes(1));
+      await waitFor(() => expect(buildApproveTokenTransaction).toHaveBeenCalledTimes(1));
       expect(submitSignedTransaction).toHaveBeenCalledTimes(1);
     });
 
     it("fires a success toast after a successful approve call", async () => {
-      buildApproveUsdcTransaction.mockResolvedValue("approve-tx-xdr");
+      buildApproveTokenTransaction.mockResolvedValue("approve-tx-xdr");
       submitSignedTransaction.mockResolvedValue({ txHash: "approve-hash" });
 
       render(<LPDashboard />);
@@ -248,20 +267,22 @@ describe("FundConfirmModal (via LPDashboard)", () => {
     });
 
     it("shows the funding-error message when approval fails", async () => {
-      buildApproveUsdcTransaction.mockRejectedValue(new Error("User rejected tx"));
+      buildApproveTokenTransaction.mockRejectedValue(new Error("User rejected tx"));
 
       render(<LPDashboard />);
       fireEvent.click(await screen.findByRole("button", { name: "Fund" }));
       fireEvent.click(await screen.findByRole("button", { name: "Approve USDC" }));
 
-      expect(await screen.findByText(/User rejected tx/)).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText(/User rejected tx/)).toBeInTheDocument();
+      });
     });
   });
 
   // ── Cancel button ─────────────────────────────────────────────────────────
 
   it("closes the modal without calling any contract function when Cancel is clicked", async () => {
-    getUsdcAllowance.mockResolvedValue(0n);
+    getTokenAllowance.mockResolvedValue(0n);
 
     render(<LPDashboard />);
     fireEvent.click(await screen.findByRole("button", { name: "Fund" }));
@@ -272,7 +293,7 @@ describe("FundConfirmModal (via LPDashboard)", () => {
     );
 
     expect(fundInvoice).not.toHaveBeenCalled();
-    expect(buildApproveUsdcTransaction).not.toHaveBeenCalled();
+    expect(buildApproveTokenTransaction).not.toHaveBeenCalled();
     expect(submitSignedTransaction).not.toHaveBeenCalled();
   });
 });

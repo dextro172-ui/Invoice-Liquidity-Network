@@ -8,8 +8,7 @@ import InvoiceFilterBar from "./InvoiceFilterBar";
 import { useApprovedTokens } from "../hooks/useApprovedTokens";
 import { applyInvoiceFilters, useInvoiceFilters } from "../hooks/useInvoiceFilters";
 import SkeletonRow, { LP_DISCOVERY_COLUMNS } from "./SkeletonRow";
-import { EmptyState } from "./EmptyState";
-import { LPDiscoveryEmptyIllustration, NotificationsEmptyIllustration } from "./illustrations/EmptyIllustrations";
+import FundConfirmModal from "./FundConfirmModal";
 import {
   buildApproveTokenTransaction,
   claimDefault,
@@ -19,8 +18,7 @@ import {
   Invoice,
   submitSignedTransaction,
 } from "../utils/soroban";
-import { formatUSDC, formatAddress, formatDate, calculateYield } from "../utils/format";
-import { formatAddress, formatDate, formatTokenAmount, calculateYield } from "../utils/format";
+import { formatUSDC, formatAddress, formatDate, formatTokenAmount, calculateYield } from "../utils/format";
 import { useWatchlist } from "../hooks/useWatchlist";
 import { usePayerScores } from "../hooks/usePayerScores";
 import RiskBadge from "./RiskBadge";
@@ -541,20 +539,8 @@ export default function LPDashboard() {
                 ))
               ) : (activeTab === "discovery" ? discoveryInvoices : watchlistInvoices).length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-12">
-                    <EmptyState
-                      title={activeTab === "discovery" ? "No Pending Invoices" : "Watchlist Empty"}
-                      description={
-                        activeTab === "discovery"
-                          ? "There are currently no active invoices waiting to be funded."
-                          : "You haven't added any invoices to your watchlist yet."
-                      }
-                      illustration={
-                        activeTab === "discovery" 
-                          ? <LPDiscoveryEmptyIllustration /> 
-                          : <NotificationsEmptyIllustration />
-                      }
-                    />
+                  <td colSpan={8} className="px-6 py-12 text-center text-on-surface-variant italic">
+                    No {activeTab === "discovery" ? "pending" : "saved"} invoices found.
                   </td>
                 </tr>
               ) : (
@@ -644,148 +630,14 @@ export default function LPDashboard() {
       )}
 
       {/* Confirmation Modal */}
-      {selectedInvoice && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
-          <div className="bg-surface-container-lowest rounded-2xl shadow-2xl border border-outline-variant/20 w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="p-6 border-b border-surface-dim">
-              <h4 className="text-xl font-bold">Fund Invoice #{selectedInvoice.id.toString()}</h4>
-              <p className="text-sm text-on-surface-variant mt-1">The funding token is fixed by the invoice. Approve it only when the current allowance is too low, then complete funding.</p>
-            </div>
-            
-            <div className="p-6 space-y-4">
-              {selectedInvoiceToken ? (
-                <TokenSelector
-                  label="Invoice token"
-                  value={selectedInvoiceToken.contractId}
-                  tokens={tokens}
-                  readOnly
-                />
-              ) : null}
-
-              {needsApproval ? (
-                <div className="rounded-xl border border-outline-variant/20 bg-surface-container-low p-4">
-                  <div className="flex items-start gap-3">
-                    <StepPill active={currentStep === "approve"} complete={currentStep === "fund"}>
-                      1
-                    </StepPill>
-                    <div className="min-w-0">
-                      <p className="text-sm font-bold">Step 1: Approve {selectedInvoiceToken?.symbol ?? "token"}</p>
-                      <p className="text-xs text-on-surface-variant mt-1">
-                        {isCheckingAllowance
-                          ? "Checking current allowance..."
-                          : `Approve exactly ${selectedInvoiceToken ? formatTokenAmount(selectedInvoice.amount, selectedInvoiceToken) : selectedInvoice.amount.toString()} for the ILN contract.`}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="mt-3 flex items-center justify-between text-xs text-on-surface-variant">
-                    <span>Current allowance</span>
-                    <span className="font-bold text-on-surface">
-                      {allowance === null || !selectedInvoiceToken ? "--" : formatTokenAmount(allowance, selectedInvoiceToken)}
-                    </span>
-                  </div>
-                </div>
-              ) : (
-                <div className="rounded-xl border border-primary/15 bg-primary-container/20 px-4 py-3 text-sm text-on-surface">
-                  Allowance already covers this invoice. You can go straight to funding.
-                </div>
-              )}
-
-              <div className="rounded-xl border border-outline-variant/20 bg-surface-container-low p-4">
-                <div className="flex items-start gap-3">
-                    <StepPill active={currentStep === "fund"}>{needsApproval ? 2 : 1}</StepPill>
-                  <div>
-                    <p className="text-sm font-bold">{needsApproval ? "Step 2: Fund Invoice" : "Step 1: Fund Invoice"}</p>
-                    <p className="text-xs text-on-surface-variant mt-1">
-                      Send the invoice principal once the ILN contract can spend your {selectedInvoiceToken?.symbol ?? "token"}.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex justify-between text-sm">
-                <span className="text-on-surface-variant">You will send:</span>
-                <span className="font-bold">
-                  {selectedInvoiceToken ? (
-                    <TokenAmount amount={formatTokenAmount(selectedInvoice.amount, selectedInvoiceToken)} token={selectedInvoiceToken} />
-                  ) : null}
-                </span>
-              </div>
-              <div className="flex justify-between text-sm text-green-600 font-medium">
-                <span>Freelancer receives immediately:</span>
-                <span>
-                  {selectedInvoiceToken ? (
-                    <TokenAmount
-                      amount={formatTokenAmount(selectedInvoice.amount - calculateYield(selectedInvoice.amount, selectedInvoice.discount_rate), selectedInvoiceToken)}
-                      token={selectedInvoiceToken}
-                    />
-                  ) : null}
-                </span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-on-surface-variant">You receive on settlement:</span>
-                <span className="font-bold">
-                  {selectedInvoiceToken ? (
-                    <TokenAmount amount={formatTokenAmount(selectedInvoice.amount, selectedInvoiceToken)} token={selectedInvoiceToken} />
-                  ) : null}
-                </span>
-              </div>
-              <div className="flex justify-between text-sm border-t border-surface-dim pt-4">
-                <span className="text-on-surface-variant">Your yield (discount):</span>
-                <span className="font-bold text-green-600">
-                  {selectedInvoiceToken ? (
-                    <TokenAmount
-                      amount={`${formatTokenAmount(calculateYield(selectedInvoice.amount, selectedInvoice.discount_rate), selectedInvoiceToken)} (${(selectedInvoice.discount_rate / 100).toFixed(2)}%)`}
-                      token={selectedInvoiceToken}
-                    />
-                  ) : null}
-                </span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-on-surface-variant">Estimated due date:</span>
-                <span className="font-bold">{formatDate(selectedInvoice.due_date)}</span>
-              </div>
-
-              {fundingError ? (
-                <div className="rounded-xl border border-error/15 bg-error-container/70 px-4 py-3 text-sm text-on-error-container">
-                  {fundingError}
-                </div>
-              ) : null}
-            </div>
-
-            <div className="p-6 bg-surface-container-low flex gap-3">
-              <button
-                disabled={isFunding || isApproving}
-                onClick={() => setSelectedInvoice(null)}
-                className="flex-1 py-3 rounded-xl font-bold text-sm border border-outline-variant hover:bg-surface-dim transition-colors disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                disabled={isFunding || isApproving || isCheckingAllowance}
-                onClick={currentStep === "approve" ? approveToken : confirmFunding}
-                className="flex-[2] py-3 rounded-xl font-bold text-sm bg-primary text-surface-container-lowest hover:bg-primary/90 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
-              >
-                {isCheckingAllowance ? (
-                  <>
-                    <span className="w-4 h-4 border-2 border-surface-container-lowest border-t-transparent rounded-full animate-spin"></span>
-                    Checking allowance...
-                  </>
-                ) : isApproving ? (
-                  <>
-                    <span className="w-4 h-4 border-2 border-surface-container-lowest border-t-transparent rounded-full animate-spin"></span>
-                    Approving {selectedInvoiceToken?.symbol ?? "token"}...
-                  </>
-                ) : isFunding ? (
-                  <>
-                    <span className="w-4 h-4 border-2 border-surface-container-lowest border-t-transparent rounded-full animate-spin"></span>
-                    Funding...
-                  </>
-                ) : currentStep === "approve" ? `Approve ${selectedInvoiceToken?.symbol ?? "token"}` : "Fund Invoice"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <FundConfirmModal
+        invoice={selectedInvoice}
+        onClose={() => setSelectedInvoice(null)}
+        onSuccess={() => {
+          setSelectedInvoice(null);
+          fetchData();
+        }}
+      />
     </div>
   );
 }

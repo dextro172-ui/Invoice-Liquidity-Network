@@ -131,9 +131,7 @@ fn test_cannot_fund_already_funded_invoice() {
     );
 
     // Second funding attempt should fail with AlreadyFunded
-    let result = t
-        .contract
-        .try_fund_invoice(&t.funder, &id, &INVOICE_AMOUNT);
+    let result = t.contract.try_fund_invoice(&t.funder, &id, &INVOICE_AMOUNT);
     assert_eq!(result, Err(Ok(ContractError::AlreadyFunded)));
 
     // Verify status unchanged
@@ -163,9 +161,7 @@ fn test_cannot_fund_already_paid_invoice() {
     );
 
     // Funding attempt should fail with AlreadyPaid
-    let result = t
-        .contract
-        .try_fund_invoice(&t.funder, &id, &INVOICE_AMOUNT);
+    let result = t.contract.try_fund_invoice(&t.funder, &id, &INVOICE_AMOUNT);
     assert_eq!(result, Err(Ok(ContractError::AlreadyPaid)));
 
     // Verify status unchanged
@@ -198,9 +194,7 @@ fn test_cannot_fund_defaulted_invoice() {
     );
 
     // Funding attempt should fail with InvoiceDefaulted
-    let result = t
-        .contract
-        .try_fund_invoice(&t.funder, &id, &INVOICE_AMOUNT);
+    let result = t.contract.try_fund_invoice(&t.funder, &id, &INVOICE_AMOUNT);
     assert_eq!(result, Err(Ok(ContractError::InvoiceDefaulted)));
 
     // Verify status unchanged
@@ -489,10 +483,7 @@ fn test_pending_to_funded_full_funding() {
     assert_eq!(invoice_after.amount_funded, INVOICE_AMOUNT);
     assert_eq!(invoice_after.funder, Some(t.funder.clone()));
     assert!(invoice_after.funded_at.is_some());
-    assert_eq!(
-        invoice_after.funded_at.unwrap(),
-        t.env.ledger().timestamp()
-    );
+    assert_eq!(invoice_after.funded_at.unwrap(), t.env.ledger().timestamp());
 }
 
 // ----------------------------------------------------------------
@@ -511,10 +502,7 @@ fn test_pending_to_partially_funded_to_funded() {
     token_admin.mint(&funder2, &INVOICE_AMOUNT);
 
     // Verify initial state
-    assert_eq!(
-        t.contract.get_invoice(&id).status,
-        InvoiceStatus::Pending
-    );
+    assert_eq!(t.contract.get_invoice(&id).status, InvoiceStatus::Pending);
 
     // Fund 40% - transition to PartiallyFunded
     let partial_amount = INVOICE_AMOUNT * 4000 / 10000;
@@ -693,21 +681,28 @@ fn test_state_transition_matrix_validation() {
     // Test Pending → transfer works
     let id_pending = submit_invoice(&t);
     let new_freelancer = Address::generate(&t.env);
-    let result = t.contract.try_transfer_invoice(&id_pending, &new_freelancer);
+    let result = t
+        .contract
+        .try_transfer_invoice(&id_pending, &new_freelancer);
     assert!(result.is_ok(), "Transfer should work on Pending invoice");
 
     // Test Funded → mark_paid works
     let id_funded = submit_invoice(&t);
-    t.contract.fund_invoice(&t.funder, &id_funded, &INVOICE_AMOUNT);
+    t.contract
+        .fund_invoice(&t.funder, &id_funded, &INVOICE_AMOUNT);
     let result = t.contract.try_mark_paid(&id_funded);
     assert!(result.is_ok(), "Mark paid should work on Funded invoice");
 
     // Test Funded → claim_default works (after due date)
     let id_default = submit_invoice(&t);
-    t.contract.fund_invoice(&t.funder, &id_default, &INVOICE_AMOUNT);
+    t.contract
+        .fund_invoice(&t.funder, &id_default, &INVOICE_AMOUNT);
     advance_past_due_date(&t, id_default);
     let result = t.contract.try_claim_default(&t.funder, &id_default);
-    assert!(result.is_ok(), "Claim default should work on Funded invoice past due date");
+    assert!(
+        result.is_ok(),
+        "Claim default should work on Funded invoice past due date"
+    );
 }
 
 // ----------------------------------------------------------------
@@ -724,8 +719,7 @@ fn test_cannot_mark_paid_on_partially_funded_invoice() {
     token_admin.mint(&funder, &INVOICE_AMOUNT);
 
     // Fund only 50%
-    t.contract
-        .fund_invoice(&funder, &id, &(INVOICE_AMOUNT / 2));
+    t.contract.fund_invoice(&funder, &id, &(INVOICE_AMOUNT / 2));
 
     assert_eq!(
         t.contract.get_invoice(&id).status,
@@ -747,8 +741,7 @@ fn test_cannot_claim_default_on_partially_funded_invoice() {
     token_admin.mint(&funder, &INVOICE_AMOUNT);
 
     // Fund only 50%
-    t.contract
-        .fund_invoice(&funder, &id, &(INVOICE_AMOUNT / 2));
+    t.contract.fund_invoice(&funder, &id, &(INVOICE_AMOUNT / 2));
 
     assert_eq!(
         t.contract.get_invoice(&id).status,
@@ -789,9 +782,7 @@ fn test_overfunding_rejected_preserves_state() {
     token_admin.mint(&funder2, &INVOICE_AMOUNT);
 
     let overfund_amount = INVOICE_AMOUNT * 5000 / 10000;
-    let result = t
-        .contract
-        .try_fund_invoice(&funder2, &id, &overfund_amount);
+    let result = t.contract.try_fund_invoice(&funder2, &id, &overfund_amount);
     assert_eq!(result, Err(Ok(ContractError::OverfundingRejected)));
 
     // Verify state unchanged
