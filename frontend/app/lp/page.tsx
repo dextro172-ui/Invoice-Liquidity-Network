@@ -1,4 +1,4 @@
-import LPDashboardPage from "@/src/pages/LPDashboard";
+import LPDashboardPage from "@/src/screens/LPDashboard";
 
 export default function LPRoutePage() {
   return <LPDashboardPage />;

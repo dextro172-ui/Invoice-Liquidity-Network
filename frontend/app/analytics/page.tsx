@@ -32,6 +32,7 @@ import {
 import { NETWORK_NAME } from "../../constants";
 import { getAllInvoices, Invoice } from "../../utils/soroban";
 import AmountHistogram from "../../components/charts/AmountHistogram";
+import { ExportButton } from "../../components/ExportButton";
 
 // ─── Metadata (static export — works for server components; kept here for
 //     documentation purposes since this is a "use client" file) ───────────────
@@ -437,6 +438,9 @@ export default function AnalyticsPage() {
                 </span>
                 Refresh
               </button>
+              {data && data.invoices && (
+                <ExportButton data={data.invoices} filenamePrefix="iln-protocol-export" />
+              )}
             </div>
             {/* Stale-data banner */}
             {loadState === "error" && data && (

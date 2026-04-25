@@ -9,6 +9,7 @@ import {
   Legend,
   ResponsiveContainer,
   Cell,
+  type TooltipProps,
 } from "recharts";
 import { Invoice } from "../../utils/soroban";
 
@@ -192,13 +193,14 @@ export default function AmountHistogram({ invoices }: AmountHistogramProps) {
               axisLine={false} 
               tickLine={false} 
               tick={{ fill: "var(--color-on-surface-variant)", fontSize: 12 }} 
-              tickFormatter={(v) => yScale === "volume" && v >= 1000 ? `${v/1000}k` : v}
+              tickFormatter={(v: number) => yScale === "volume" && v >= 1000 ? `${v/1000}k` : v}
             />
             <Tooltip
               cursor={{ fill: "var(--color-surface-container-high)", opacity: 0.4 }}
-              content={({ active, payload, label }) => {
+              content={(props: TooltipProps<number, string>) => {
+                const { active, payload, label } = props;
                 if (active && payload && payload.length) {
-                  const total = payload.reduce((acc, entry) => acc + (entry.value as number), 0);
+                  const total = payload.reduce((acc: number, entry) => acc + ((entry.value as number) ?? 0), 0);
                   return (
                     <div className="bg-surface-container-lowest border border-outline-variant/20 p-4 rounded-2xl shadow-xl">
                       <p className="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-3">{label}</p>
@@ -233,7 +235,7 @@ export default function AmountHistogram({ invoices }: AmountHistogramProps) {
               align="center" 
               iconType="circle"
               wrapperStyle={{ paddingTop: 20, fontSize: 12, fontWeight: 500 }}
-              formatter={(value) => <span className="text-on-surface-variant capitalize">{value}</span>}
+              formatter={(value: string) => <span className="text-on-surface-variant capitalize">{value}</span>}
             />
             
             {/* Stacked Bars */}

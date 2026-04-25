@@ -27,6 +27,8 @@ deploy-local:
 
 seed:
 	@chmod +x scripts/seed.sh
+	@chmod +x scripts/fund-wallets.sh
+	@./scripts/fund-wallets.sh
 	@./scripts/seed.sh
 
 test:

@@ -14,3 +14,6 @@ fmt:
 
 clean:
 	cargo clean
+
+mutants:
+	cargo mutants --package invoice_liquidity

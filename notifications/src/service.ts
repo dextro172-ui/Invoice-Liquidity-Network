@@ -1,0 +1,144 @@
+import type {
+  InvoiceEvent,
+  Subscription,
+  DeliveryResult,
+  ActorRole,
+  WebhookStatus,
+} from "./types";
+
+// ─── Dependency interfaces (injectable for testing) ────────────────────────────
+
+export interface EmailClient {
+  send(to: string, subject: string, body: string): Promise<void>;
+}
+
+export interface HttpClient {
+  post(url: string, payload: unknown): Promise<{ status: number }>;
+}
+
+export interface SubscriptionStore {
+  getByAddress(address: string): Promise<Subscription[]>;
+  updateSubscription(id: string, updates: Partial<Subscription>): Promise<void>;
+}
+
+export interface ProcessedEventStore {
+  hasProcessed(eventId: string): Promise<boolean>;
+  markProcessed(eventId: string): Promise<void>;
+}
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const WEBHOOK_MAX_RETRIES = 3;
+
+// Which event types each actor role should receive
+const ROLE_EVENT_ALLOWLIST: Record<ActorRole, string[]> = {
+  freelancer: ["funded", "paid", "defaulted", "due_date_warning"],
+  lp: ["funded", "paid", "defaulted"],
+  payer: ["funded", "paid"],
+};
+
+// ─── Service ─────────────────────────────────────────────────────────────────
+
+export class NotificationService {
+  constructor(
+    private readonly email: EmailClient,
+    private readonly http: HttpClient,
+    private readonly subscriptions: SubscriptionStore,
+    private readonly processedEvents: ProcessedEventStore,
+    private readonly clock: () => number = () => Date.now(),
+  ) {}
+
+  async handleEvent(event: InvoiceEvent): Promise<DeliveryResult[]> {
+    // Idempotency: skip duplicate events
+    if (await this.processedEvents.hasProcessed(event.eventId)) {
+      return [];
+    }
+
+    const results: DeliveryResult[] = [];
+
+    const actors: Array<{ address: string; role: ActorRole }> = [
+      { address: event.freelancer, role: "freelancer" },
+      { address: event.payer, role: "payer" },
+      ...(event.funder ? [{ address: event.funder, role: "lp" as ActorRole }] : []),
+    ];
+
+    for (const { address, role } of actors) {
+      const allowed = ROLE_EVENT_ALLOWLIST[role] ?? [];
+      if (!allowed.includes(event.type)) continue;
+
+      const subs = await this.subscriptions.getByAddress(address);
+
+      for (const sub of subs) {
+        if (!sub.active) continue;
+        if (sub.role !== role) continue;
+
+        if (sub.channel === "email" && sub.email) {
+          results.push(await this.deliverEmail(sub, event));
+        } else if (sub.channel === "webhook" && sub.webhookUrl) {
+          results.push(await this.deliverWebhook(sub, event));
+        }
+      }
+    }
+
+    await this.processedEvents.markProcessed(event.eventId);
+    return results;
+  }
+
+  isDueDateWarningDue(dueDateUnixSeconds: number): boolean {
+    const warningAt = dueDateUnixSeconds * 1000 - 48 * 60 * 60 * 1000;
+    return this.clock() >= warningAt;
+  }
+
+  private async deliverEmail(sub: Subscription, event: InvoiceEvent): Promise<DeliveryResult> {
+    const subject = this.buildEmailSubject(event);
+    const body = this.buildEmailBody(sub.role, event);
+    await this.email.send(sub.email!, subject, body);
+    return { success: true, channel: "email", subscriptionId: sub.id };
+  }
+
+  private async deliverWebhook(sub: Subscription, event: InvoiceEvent): Promise<DeliveryResult> {
+    const payload = {
+      eventId: event.eventId,
+      type: event.type,
+      invoiceId: event.invoiceId,
+      role: sub.role,
+      timestamp: this.clock(),
+    };
+
+    for (let attempt = 0; attempt < WEBHOOK_MAX_RETRIES; attempt++) {
+      try {
+        const response = await this.http.post(sub.webhookUrl!, payload);
+        if (response.status >= 200 && response.status < 300) {
+          return { success: true, channel: "webhook", subscriptionId: sub.id };
+        }
+      } catch {
+        // network error — retry
+      }
+    }
+
+    await this.subscriptions.updateSubscription(sub.id, { webhookStatus: "failed" as WebhookStatus });
+    return { success: false, channel: "webhook", subscriptionId: sub.id };
+  }
+
+  private buildEmailSubject(event: InvoiceEvent): string {
+    const labels: Record<string, string> = {
+      funded: `Invoice #${event.invoiceId} has been funded`,
+      paid: `Invoice #${event.invoiceId} has been settled`,
+      defaulted: `Invoice #${event.invoiceId} has defaulted`,
+      due_date_warning: `Invoice #${event.invoiceId} is due in 48 hours`,
+    };
+    return labels[event.type] ?? `Invoice #${event.invoiceId} update`;
+  }
+
+  private buildEmailBody(role: string, event: InvoiceEvent): string {
+    const roleLabel = role === "lp" ? "Liquidity Provider" : role.charAt(0).toUpperCase() + role.slice(1);
+    return [
+      `Hello ${roleLabel},`,
+      ``,
+      `Invoice #${event.invoiceId} status: ${event.type}`,
+      `Amount: ${event.amount}`,
+      `Freelancer: ${event.freelancer}`,
+      `Payer: ${event.payer}`,
+    ].join("\n");
+  }
+}

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Footer from "../../components/Footer";
 import Navbar from "../../components/Navbar";
+import InvoiceQRModal from "../../components/InvoiceQRModal";
 import { CONTRACT_ID, NETWORK_NAME } from "../../constants";
 import { useWallet } from "../../context/WalletContext";
 import { formatAddress, formatDate, formatUSDC } from "../../utils/format";
@@ -70,6 +71,7 @@ export default function DashboardPage() {
   const [statusFilter, setStatusFilter] = useState<FreelancerStatusFilter>("All");
   const [sortKey, setSortKey] = useState<FreelancerSortKey>("due_date");
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
+  const [qrInvoice, setQrInvoice] = useState<Invoice | null>(null);
 
   const fetchInvoices = useCallback(async () => {
     if (!address) return;
@@ -241,18 +243,55 @@ export default function DashboardPage() {
                         <InvoiceStatusBadge status={invoice.status} />
                       </td>
                       <td className="px-4 md:px-6 py-5">
-                        <div className="flex flex-col gap-1">
-                          <Link className="text-xs font-medium text-primary hover:underline" href={`/i/${invoice.id.toString()}`}>
-                            Public invoice page
-                          </Link>
-                          <a
-                            className="text-xs font-medium text-primary hover:underline"
-                            href={STELLAR_EXPERT_CONTRACT_URL}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            Stellar Expert
-                          </a>
+                        <div className="flex items-center gap-3">
+                          <div className="flex flex-col gap-1 flex-1">
+                            <Link className="text-xs font-medium text-primary hover:underline" href={`/i/${invoice.id.toString()}`}>
+                              Public invoice page
+                            </Link>
+                            <a
+                              className="text-xs font-medium text-primary hover:underline"
+                              href={STELLAR_EXPERT_CONTRACT_URL}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              Stellar Expert
+                            </a>
+                          </div>
+                          
+                          {/* Row Action Menu */}
+                          <div className="relative group">
+                            <button 
+                              className="p-1 rounded-full hover:bg-surface-container-high transition-colors"
+                              aria-label="More actions"
+                            >
+                              <span className="material-symbols-outlined text-lg text-on-surface-variant">more_vert</span>
+                            </button>
+                            <div className="absolute right-0 bottom-full mb-2 hidden group-focus-within:block group-hover:block bg-surface-container-high border border-outline-variant/30 rounded-xl shadow-xl z-10 py-1 min-w-[160px]">
+                              <Link
+                                href={{
+                                  pathname: '/submit',
+                                  query: {
+                                    prefill_id: invoice.id.toString(),
+                                    payer: invoice.payer,
+                                    amount: (Number(invoice.amount) / 10_000_000).toString(),
+                                    discount: (invoice.discount_rate / 100).toString(),
+                                    token: invoice.tokenId || "",
+                                  }
+                                }}
+                                className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-on-surface hover:bg-surface-container-highest transition-colors w-full text-left"
+                              >
+                                <span className="material-symbols-outlined text-[18px]">content_copy</span>
+                                Submit similar
+                              </Link>
+                              <button
+                                onClick={() => setQrInvoice(invoice)}
+                                className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-on-surface hover:bg-surface-container-highest transition-colors w-full text-left"
+                              >
+                                <span className="material-symbols-outlined text-[18px]">qr_code</span>
+                                Show QR code
+                              </button>
+                            </div>
+                          </div>
                         </div>
                       </td>
                     </tr>
@@ -264,6 +303,17 @@ export default function DashboardPage() {
         </div>
       </section>
       <Footer />
+
+      {/* QR Code modal — opened from row action menu */}
+      {qrInvoice && (
+        <InvoiceQRModal
+          invoiceId={qrInvoice.id}
+          amount={qrInvoice.amount}
+          dueDate={qrInvoice.due_date}
+          freelancer={qrInvoice.freelancer}
+          onClose={() => setQrInvoice(null)}
+        />
+      )}
     </main>
   );
 }

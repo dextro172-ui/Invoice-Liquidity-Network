@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { use, useEffect, useState, useCallback } from "react";
 import { getInvoice, markPaid, submitSignedTransaction, type Invoice } from "../../../utils/soroban";
 import { formatUsdcFromStroops } from "../../../utils/invoiceSubmission";
 import { useWallet } from "../../../context/WalletContext";
@@ -10,7 +10,8 @@ import ActivityFeed from "../../../components/ActivityFeed";
 
 type LoadState = "loading" | "success" | "error";
 
-export default function PayInvoicePage({ params }: { params: { id: string } }) {
+export default function PayInvoicePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const { address, connect, signTx } = useWallet();
   const { addToast, updateToast } = useToast();
   const [invoice, setInvoice] = useState<Invoice | null>(null);
@@ -18,7 +19,7 @@ export default function PayInvoicePage({ params }: { params: { id: string } }) {
   const [error, setError] = useState<string | null>(null);
   const [isPaying, setIsPaying] = useState(false);
 
-  const invoiceId = BigInt(params.id);
+  const invoiceId = BigInt(id);
 
   const fetchInvoice = useCallback(async () => {
     try {

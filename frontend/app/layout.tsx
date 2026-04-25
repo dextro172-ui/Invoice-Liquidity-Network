@@ -1,20 +1,11 @@
 import type { Metadata } from "next";
-import { Manrope, Newsreader } from "next/font/google";
 import "./globals.css";
 import { ToastProvider } from "../context/ToastContext";
 import { WalletProvider } from "../context/WalletContext";
 import OnboardingFlow from "../components/onboarding/OnboardingFlow";
+import NetworkBanner from "../components/NetworkBanner";
+import CommandPalette from "../components/CommandPalette";
 
-const manrope = Manrope({
-  variable: "--font-manrope",
-  subsets: ["latin"],
-});
-
-const newsreader = Newsreader({
-  variable: "--font-newsreader",
-  subsets: ["latin"],
-  style: ["normal", "italic"],
-});
 
 export const metadata: Metadata = {
   title: "ILN | Invoice Liquidity Network",
@@ -52,14 +43,21 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${manrope.variable} ${newsreader.variable} antialiased bg-background text-foreground transition-colors duration-300 selection:bg-primary-container selection:text-on-primary-container`}
+        className="antialiased bg-background text-foreground transition-colors duration-300 selection:bg-primary-container selection:text-on-primary-container"
       >
         <ToastProvider>
           <WalletProvider>
-            {children}
+            <div className="min-h-screen flex flex-col">
+              <NetworkBanner />
+              <div className="flex-1">
+                {children}
+              </div>
+            </div>
             <OnboardingFlow />
           </WalletProvider>
         </ToastProvider>
+            <CommandPalette />
+
       </body>
     </html>
   );

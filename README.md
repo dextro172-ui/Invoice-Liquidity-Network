@@ -288,6 +288,39 @@ stellar keys generate --global alice --network testnet
 stellar keys fund alice --network testnet
 ```
 
+### Development Wallet Funding
+
+To simplify testing on Stellar Testnet, use the `fund-wallets.sh` script. This script automatically funds addresses with testnet XLM via Friendbot and mints mock USDC if an admin key is provided.
+
+#### Environment Setup
+
+Ensure the following environment variables are set:
+
+| Variable | Description |
+|----------|-------------|
+| `ADMIN_SECRET` | Secret key of the USDC issuer/admin (required for minting) |
+| `USDC_CONTRACT_ID` | Contract ID of the mock USDC on Testnet |
+
+#### Usage
+
+**1. Using command-line arguments:**
+```bash
+./scripts/fund-wallets.sh GADDRESS1... GADDRESS2...
+```
+
+**2. Using a batch file:**
+Create a `dev-wallets.txt` file in the root directory with one address per line, then run:
+```bash
+./scripts/fund-wallets.sh
+```
+
+**3. Via Makefile:**
+```bash
+make seed
+```
+
+The script includes automatic retries with exponential backoff to handle rate limits and will output a summary table of balances upon completion.
+
 ### Build & Test
 
 ```bash
@@ -297,6 +330,10 @@ cargo build --target wasm32-unknown-unknown --release
 
 # Run tests
 cargo test
+
+#### Regression Testing
+When fixing a bug, you must add a regression test to `contracts/invoice_liquidity/src/tests_regression.rs`.
+Please include a comment with `/// Regression for: [Issue/PR description]` to document the edge-case and prevent future regressions.
 
 # Deploy to testnet
 stellar contract deploy \

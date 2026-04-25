@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run"
@@ -12,11 +12,14 @@
   "dependencies": {
     "@stellar/freighter-api": "^6.0.1",
     "@stellar/stellar-sdk": "^15.0.1",
+    "@wagmi/core": "^3.4.5",
+    "lucide-react": "^1.11.0",
     "next": "16.2.4",
     "qrcode.react": "^4.2.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "recharts": "^2.15.0",
+    "recharts": "^2.15.4",
+    "viem": "^2.48.4",
     "wagmi": "^3.6.4"
   },
   "devDependencies": {
