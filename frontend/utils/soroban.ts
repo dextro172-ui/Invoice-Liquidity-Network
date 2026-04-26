@@ -473,6 +473,54 @@ export async function submitInvoice(
   return { tx: finalTx as any, invoiceId };
 }
 
+export interface UpdateInvoiceArgs {
+  freelancer: string;
+  invoiceId: bigint;
+  amount: bigint;
+  dueDate: number;
+  discountRate: number;
+}
+
+export async function updateInvoice(
+  args: UpdateInvoiceArgs
+): Promise<{ tx: Transaction }> {
+  const params: xdr.ScVal[] = [
+    Address.fromString(args.freelancer).toScVal(),
+    nativeToScVal(args.invoiceId, { type: "u64" }),
+    nativeToScVal(args.amount, { type: "i128" }),
+    nativeToScVal(BigInt(args.dueDate), { type: "u64" }),
+    nativeToScVal(args.discountRate, { type: "u32" }),
+  ];
+
+  const account = await server.getAccount(args.freelancer);
+  const tx = new TransactionBuilder(account, {
+    fee: "10000",
+    networkPassphrase: NETWORK_PASSPHRASE,
+  })
+    .addOperation(
+      Operation.invokeHostFunction({
+        func: xdr.HostFunction.hostFunctionTypeInvokeContract(
+          new xdr.InvokeContractArgs({
+            contractAddress: Address.fromString(CONTRACT_ID).toScAddress(),
+            functionName: "update_invoice",
+            args: params,
+          })
+        ),
+        auth: [],
+      })
+    )
+    .setTimeout(60 * 5)
+    .build();
+
+  const sim = await server.simulateTransaction(tx);
+  if (!rpc.Api.isSimulationSuccess(sim)) {
+    throw new Error(`Simulation failed: ${(sim as any).error}`);
+  }
+
+  const finalTx = rpc.assembleTransaction(tx, sim).build();
+  return { tx: finalTx as any };
+}
+
 export async function submitInvoiceTransaction({
   freelancer,
   payer,

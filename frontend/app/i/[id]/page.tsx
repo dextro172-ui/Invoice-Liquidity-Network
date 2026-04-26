@@ -3,12 +3,13 @@
 import { use, useEffect, useState, useCallback } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { getInvoice, type Invoice } from "../../../utils/soroban";
-import { formatUsdcFromStroops } from "../../../utils/invoiceSubmission";
+import { formatUsdcFromStroops, parseAmountToUnits, parseDiscountRateToBps, toUnixTimestamp } from "../../../utils/invoiceSubmission";
 import { TESTNET_USDC_TOKEN_ID, NETWORK_NAME, CONTRACT_ID } from "../../../constants";
 import ActivityFeed from "../../../components/ActivityFeed";
 import { useWallet } from "../../../context/WalletContext";
 import { useToast } from "../../../context/ToastContext";
 import { useDocumentTitle } from "../../../hooks/useDocumentTitle";
+import { updateInvoice, submitSignedTransaction } from "../../../utils/soroban";
 import "../../../styles/print.css";
 
 interface InvoiceEvent {
@@ -422,8 +423,19 @@ export default function InvoiceStatusPage({
 
   const { invoice, loadState, errorMessage, lastUpdated } = useInvoicePolling(invoiceId);
 
-  const { address } = useWallet();
+  const { address, signTx } = useWallet();
+  const { addToast } = useToast();
   const [addressesRevealed, setAddressesRevealed] = useState(false);
+
+  // -- Inline Edit State
+  const [isEditing, setIsEditing] = useState(false);
+  const [editAmount, setEditAmount] = useState("");
+  const [editDueDate, setEditDueDate] = useState("");
+  const [editDiscountRate, setEditDiscountRate] = useState("");
+  const [editErrors, setEditErrors] = useState<{ amount?: string; dueDate?: string; discountRate?: string }>({});
+
+  const [optimisticInv, setOptimisticInv] = useState<Partial<Invoice> | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   // Derive the canonical share URL from the browser (client-only)
   const [shareUrl, setShareUrl] = useState("");
@@ -508,7 +520,62 @@ export default function InvoiceStatusPage({
   }
 
   // ── Success (invoice loaded) ─────────────────────────────────────────────
-  const inv = invoice!;
+  const rawInv = invoice!;
+  const displayInv = optimisticInv ? { ...rawInv, ...optimisticInv } : rawInv;
+  const canEdit = displayInv.status === "Open" && displayInv.freelancer === address;
+
+  const handleEditInit = () => {
+    if (!canEdit || isUpdating) return;
+    setEditAmount((Number(displayInv.amount) / 10_000_000).toFixed(2));
+    const d = new Date(Number(displayInv.due_date) * 1000);
+    setEditDueDate(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`);
+    setEditDiscountRate((displayInv.discount_rate / 100).toFixed(2));
+    setEditErrors({});
+    setIsEditing(true);
+  };
+
+  const handleSave = async () => {
+    const amountUnits = parseAmountToUnits(editAmount, 7);
+    const dueDateUnix = toUnixTimestamp(editDueDate);
+    const discountRateBps = parseDiscountRateToBps(editDiscountRate);
+
+    const newErrors: typeof editErrors = {};
+    if (!amountUnits || amountUnits <= 0n) newErrors.amount = "Invalid amount";
+    if (!dueDateUnix || dueDateUnix <= Math.floor(Date.now() / 1000)) newErrors.dueDate = "Must be in the future";
+    if (!discountRateBps || discountRateBps <= 0 || discountRateBps > 5000) newErrors.discountRate = "Invalid rate";
+    
+    if (Object.keys(newErrors).length > 0) {
+      setEditErrors(newErrors);
+      return;
+    }
+
+    setIsEditing(false);
+    setIsUpdating(true);
+    setOptimisticInv({
+      amount: amountUnits!,
+      due_date: BigInt(dueDateUnix!),
+      discount_rate: discountRateBps!,
+    });
+
+    try {
+      const { tx } = await updateInvoice({
+        freelancer: address!,
+        invoiceId: rawInv.id,
+        amount: amountUnits!,
+        dueDate: dueDateUnix!,
+        discountRate: discountRateBps!,
+      });
+      await submitSignedTransaction({ tx, signTx });
+      addToast({ type: "success", title: "Invoice updated", message: "Your changes have been saved." });
+      setOptimisticInv(null);
+    } catch (err) {
+      setOptimisticInv(null);
+      addToast({ type: "error", title: "Update failed", message: err instanceof Error ? err.message : "Transaction failed" });
+      setIsEditing(true);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   return (
     <>
@@ -524,7 +591,7 @@ export default function InvoiceStatusPage({
               Invoice Liquidity Network · {NETWORK_NAME}
             </p>
             <h1 className="font-headline text-3xl sm:text-4xl">
-              Invoice #{inv.id.toString()}
+              Invoice #{displayInv.id.toString()}
             </h1>
             {lastUpdated && (
               <p className="mt-1 text-xs text-on-surface-variant">
@@ -536,45 +603,169 @@ export default function InvoiceStatusPage({
           </div>
 
           {/* ── Status banner ────────────────────────────────────────────── */}
-          {inv.status === "Paid" && <PaidBanner />}
-          {inv.status === "Defaulted" && <DefaultedBanner />}
+          {displayInv.status === "Paid" && <PaidBanner />}
+          {displayInv.status === "Defaulted" && <DefaultedBanner />}
 
           {/* ── Data card ────────────────────────────────────────────────── */}
           <section
             aria-label="Invoice details"
-            className="mt-6 rounded-[24px] border border-outline-variant/15 bg-surface-container-lowest p-6 shadow-xl"
+            className="mt-6 rounded-[24px] border border-outline-variant/15 bg-surface-container-lowest p-6 shadow-xl relative overflow-hidden"
           >
+            {isUpdating && (
+              <div className="absolute inset-0 z-10 flex items-center justify-center bg-surface-container-lowest/70 backdrop-blur-[1px]">
+                <div className="flex items-center gap-2 rounded-full border border-primary/20 bg-primary-container px-4 py-2 font-bold text-on-primary-container shadow-sm">
+                  <span className="w-4 h-4 border-2 border-on-primary-container border-t-transparent rounded-full animate-spin" />
+                  Saving pending changes...
+                </div>
+              </div>
+            )}
+            
             <div className="mb-4 flex items-center justify-between">
               <p className="text-xs font-bold uppercase tracking-[0.24em] text-on-surface-variant">
                 Invoice details
               </p>
-              <Pill className={statusChipClass(inv.status)}>
-                {statusLabel(inv.status)}
-              </Pill>
+              <div className="flex items-center gap-3">
+                {canEdit && !isEditing && (
+                  <button 
+                    onClick={handleEditInit}
+                    className="text-xs font-bold uppercase tracking-wider text-primary hover:opacity-80 flex items-center gap-1 border border-primary/20 bg-primary/5 rounded-full px-3 py-1 transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-[14px]">edit</span>
+                    Edit
+                  </button>
+                )}
+                <Pill className={statusChipClass(displayInv.status)}>
+                  {statusLabel(displayInv.status)}
+                </Pill>
+              </div>
             </div>
 
             {/* Core fields */}
-            <DataRow label="Invoice ID" value={`#${inv.id.toString()}`} />
+            <DataRow label="Invoice ID" value={`#${displayInv.id.toString()}`} />
+            
             <DataRow
               label="Amount"
-              value={`${formatUsdcFromStroops(inv.amount)} USDC`}
+              value={
+                isEditing ? (
+                  <div className="flex flex-col gap-1 items-end">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        className={`w-36 rounded-lg border ${editErrors.amount ? 'border-error/50 bg-error-container/10 text-error' : 'border-outline-variant/30 bg-surface text-on-surface'} px-3 py-1.5 text-right text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 transition-colors`}
+                        value={editAmount}
+                        onChange={(e) => {
+                          setEditAmount(e.target.value);
+                          setEditErrors((prev) => ({ ...prev, amount: "" }));
+                        }}
+                        autoFocus
+                      />
+                      <span className="text-on-surface-variant font-bold text-xs uppercase tracking-wider">USDC</span>
+                    </div>
+                    {editErrors.amount && <span className="text-[10px] text-error font-bold tracking-wide">{editErrors.amount}</span>}
+                  </div>
+                ) : (
+                  <span 
+                    onClick={canEdit ? handleEditInit : undefined}
+                    className={`${canEdit ? 'cursor-pointer hover:text-primary transition-colors hover:underline decoration-primary/50 underline-offset-4' : ''}`}
+                    title={canEdit ? "Click to edit amount" : undefined}
+                  >
+                    {formatUsdcFromStroops(displayInv.amount)} USDC
+                  </span>
+                )
+              }
             />
+            
             <DataRow
               label="Token"
               value={tokenLabel(TESTNET_USDC_TOKEN_ID)}
               mono
             />
-            <DataRow label="Due date" value={formatDate(inv.due_date)} />
+            
+            <DataRow 
+              label="Due date" 
+              value={
+                isEditing ? (
+                  <div className="flex flex-col gap-1 items-end">
+                    <input
+                      type="date"
+                      className={`rounded-lg border ${editErrors.dueDate ? 'border-error/50 bg-error-container/10 text-error' : 'border-outline-variant/30 bg-surface text-on-surface'} px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 transition-colors`}
+                      value={editDueDate}
+                      onChange={(e) => {
+                        setEditDueDate(e.target.value);
+                        setEditErrors((prev) => ({ ...prev, dueDate: "" }));
+                      }}
+                    />
+                    {editErrors.dueDate && <span className="text-[10px] text-error font-bold tracking-wide">{editErrors.dueDate}</span>}
+                  </div>
+                ) : (
+                  <span 
+                    onClick={canEdit ? handleEditInit : undefined}
+                    className={`${canEdit ? 'cursor-pointer hover:text-primary transition-colors hover:underline decoration-primary/50 underline-offset-4' : ''}`}
+                    title={canEdit ? "Click to edit due date" : undefined}
+                  >
+                    {formatDate(displayInv.due_date)}
+                  </span>
+                )
+              } 
+            />
+            
             <DataRow
               label="Discount rate"
-              value={formatDiscountRate(inv.discount_rate)}
+              value={
+                isEditing ? (
+                  <div className="flex flex-col gap-1 items-end">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        step="0.01"
+                        className={`w-24 rounded-lg border ${editErrors.discountRate ? 'border-error/50 bg-error-container/10 text-error' : 'border-outline-variant/30 bg-surface text-on-surface'} px-3 py-1.5 text-right text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 transition-colors`}
+                        value={editDiscountRate}
+                        onChange={(e) => {
+                          setEditDiscountRate(e.target.value);
+                          setEditErrors((prev) => ({ ...prev, discountRate: "" }));
+                        }}
+                      />
+                      <span className="text-on-surface-variant font-bold text-xs">%</span>
+                    </div>
+                    {editErrors.discountRate && <span className="text-[10px] text-error font-bold tracking-wide">{editErrors.discountRate}</span>}
+                  </div>
+                ) : (
+                  <span 
+                    onClick={canEdit ? handleEditInit : undefined}
+                    className={`${canEdit ? 'cursor-pointer hover:text-primary transition-colors hover:underline decoration-primary/50 underline-offset-4' : ''}`}
+                    title={canEdit ? "Click to edit discount rate" : undefined}
+                  >
+                    {formatDiscountRate(displayInv.discount_rate)}
+                  </span>
+                )
+              }
             />
-            {inv.funded_at && (
-              <DataRow label="Funded at" value={formatDate(inv.funded_at)} />
+            
+            {displayInv.funded_at && (
+              <DataRow label="Funded at" value={formatDate(displayInv.funded_at)} />
+            )}
+
+            {isEditing && (
+              <div className="mt-4 flex items-center justify-end gap-3 border-t border-outline-variant/10 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(false)}
+                  className="rounded-lg px-4 py-2 text-sm font-bold text-on-surface-variant transition-colors hover:bg-surface-variant/20"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSave}
+                  className="rounded-lg bg-primary px-5 py-2 text-sm font-bold text-on-primary transition-colors hover:bg-primary/90 shadow-sm"
+                >
+                  Save changes
+                </button>
+              </div>
             )}
 
             {/* Privacy: wallet addresses */}
-            <div className="mt-2 border-t border-outline-variant/10 pt-4">
+            <div className={`mt-2 border-t border-outline-variant/10 ${!isEditing ? 'pt-4' : 'pt-2'}`}>
               <button
                 id="toggle-address-details"
                 type="button"
@@ -593,9 +784,9 @@ export default function InvoiceStatusPage({
               </button>
 
               <AddressSection
-                freelancer={inv.freelancer}
-                payer={inv.payer}
-                funder={inv.funder}
+                freelancer={displayInv.freelancer}
+                payer={displayInv.payer}
+                funder={displayInv.funder}
                 revealed={addressesRevealed}
               />
             </div>
@@ -630,17 +821,17 @@ export default function InvoiceStatusPage({
 
               {/* Buttons + hint */}
               <div className="flex flex-col gap-3">
-                <p className="text-sm text-on-surface-variant">
+                  <p className="text-sm text-on-surface-variant">
                   Anyone with this link can verify the on-chain status of Invoice&nbsp;
-                  <strong className="font-bold text-on-surface">#{inv.id.toString()}</strong>{" "}
+                  <strong className="font-bold text-on-surface">#{displayInv.id.toString()}</strong>{" "}
                   without connecting a wallet.
                 </p>
 
                 <div className="flex flex-wrap gap-2">
                   <CopyLinkButton url={shareUrl} />
-                  {address === inv.freelancer && <CopyPayerLinkButton invoiceId={inv.id.toString()} />}
-                  <ShareOnXButton invoiceId={inv.id} url={shareUrl} />
-                  <PrintPDFButton invoiceId={inv.id} invoiceDate={formatDate(inv.due_date)} />
+                  {address === displayInv.freelancer && <CopyPayerLinkButton invoiceId={displayInv.id.toString()} />}
+                  <ShareOnXButton invoiceId={displayInv.id} url={shareUrl} />
+                  <PrintPDFButton invoiceId={displayInv.id} invoiceDate={formatDate(displayInv.due_date)} />
                 </div>
 
                 {shareUrl && (
@@ -652,7 +843,7 @@ export default function InvoiceStatusPage({
 
           {/* ── Activity Feed ────────────────────────────────────────────── */}
           <div className="no-print">
-            <ActivityFeed invoiceId={inv.id} />
+            <ActivityFeed invoiceId={displayInv.id} />
           </div>
 
           {/* ── Footer note ──────────────────────────────────────────────── */}
@@ -680,20 +871,20 @@ export default function InvoiceStatusPage({
             </div>
 
             <div className="print-invoice-title">
-              Invoice #{inv.id.toString()}
-              <span className={`print-status-badge print-status-${inv.status.toLowerCase()} ml-3`}>
-                {statusLabel(inv.status)}
+              Invoice #{displayInv.id.toString()}
+              <span className={`print-status-badge print-status-${displayInv.status.toLowerCase()} ml-3`}>
+                {statusLabel(displayInv.status)}
               </span>
             </div>
 
             <div className="print-details-grid">
               <div className="print-detail-item">
                 <span className="print-detail-label">Invoice ID</span>
-                <span className="print-detail-value">#{inv.id.toString()}</span>
+                <span className="print-detail-value">#{displayInv.id.toString()}</span>
               </div>
               <div className="print-detail-item">
                 <span className="print-detail-label">Amount</span>
-                <span className="print-detail-value">{formatUsdcFromStroops(inv.amount)} USDC</span>
+                <span className="print-detail-value">{formatUsdcFromStroops(displayInv.amount)} USDC</span>
               </div>
               <div className="print-detail-item">
                 <span className="print-detail-label">Token</span>
@@ -701,28 +892,28 @@ export default function InvoiceStatusPage({
               </div>
               <div className="print-detail-item">
                 <span className="print-detail-label">Discount Rate</span>
-                <span className="print-detail-value">{formatDiscountRate(inv.discount_rate)}</span>
+                <span className="print-detail-value">{formatDiscountRate(displayInv.discount_rate)}</span>
               </div>
               <div className="print-detail-item">
                 <span className="print-detail-label">Due Date</span>
-                <span className="print-detail-value">{formatDate(inv.due_date)}</span>
+                <span className="print-detail-value">{formatDate(displayInv.due_date)}</span>
               </div>
               <div className="print-detail-item">
                 <span className="print-detail-label">Status</span>
-                <span className="print-detail-value">{statusLabel(inv.status)}</span>
+                <span className="print-detail-value">{statusLabel(displayInv.status)}</span>
               </div>
               <div className="print-detail-item">
                 <span className="print-detail-label">Freelancer</span>
-                <span className="print-detail-value break-all">{shortenAddress(inv.freelancer)}</span>
+                <span className="print-detail-value break-all">{shortenAddress(displayInv.freelancer)}</span>
               </div>
               <div className="print-detail-item">
                 <span className="print-detail-label">Payer</span>
-                <span className="print-detail-value break-all">{shortenAddress(inv.payer)}</span>
+                <span className="print-detail-value break-all">{shortenAddress(displayInv.payer)}</span>
               </div>
-              {inv.funder && (
+              {displayInv.funder && (
                 <div className="print-detail-item">
                   <span className="print-detail-label">Funder (LP)</span>
-                  <span className="print-detail-value break-all">{shortenAddress(inv.funder)}</span>
+                  <span className="print-detail-value break-all">{shortenAddress(displayInv.funder)}</span>
                 </div>
               )}
             </div>
