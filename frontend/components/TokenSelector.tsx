@@ -1,6 +1,5 @@
-"use client";
-
 import type { ApprovedToken } from "../hooks/useApprovedTokens";
+import FieldTooltip from "./FieldTooltip";
 
 function tokenAccentClasses(symbol: string): string {
   switch (symbol) {
@@ -49,6 +48,7 @@ export function TokenAmount({
 
 export default function TokenSelector({
   label,
+  tooltip,
   value,
   tokens,
   error,
@@ -58,6 +58,7 @@ export default function TokenSelector({
   onChange,
 }: {
   label: string;
+  tooltip?: string | React.ReactNode;
   value: string;
   tokens: ApprovedToken[];
   error?: string;
@@ -71,7 +72,10 @@ export default function TokenSelector({
   return (
     <label className="block">
       <div className="mb-2 flex items-center justify-between gap-3">
-        <span className="text-xs font-bold uppercase tracking-[0.22em] text-on-surface-variant">{label}</span>
+        <span className="text-xs font-bold uppercase tracking-[0.22em] text-on-surface-variant flex items-center">
+          {label}
+          {tooltip && <FieldTooltip content={tooltip} />}
+        </span>
         {error ? <span className="text-xs font-bold text-error">{error}</span> : null}
       </div>
 
