@@ -23,6 +23,7 @@ import { NETWORK_NAME } from "../../constants";
 import { getAllInvoices, Invoice } from "../../utils/soroban";
 import AmountHistogram from "../../components/charts/AmountHistogram";
 import FundingChart from "../../components/charts/FundingChart";
+import DefaultRateChart from "../../components/charts/DefaultRateChart";
 import { ExportButton } from "../../components/ExportButton";
 import AnimatedNumber from "../../components/AnimatedNumber";
 
@@ -539,6 +540,18 @@ export default function AnalyticsPage() {
             </SectionHeading>
 
             <FundingChart />
+          </section>
+
+          {/* ── Default Rate Trend ──────────────────────────────────────────────── */}
+          <section
+            aria-labelledby="default-rate-heading"
+            className="mt-14"
+          >
+            <SectionHeading>
+              <span id="default-rate-heading">Protocol Health</span>
+            </SectionHeading>
+
+            <DefaultRateChart />
           </section>
 
           {/* ── Invoice Size Distribution ───────────────────────────────── */}

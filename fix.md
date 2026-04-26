@@ -1,35 +1,34 @@
-Frontend: Add multi-language support (i18n) with English and Spanish
+Frontend: Add default rate trend chart to the analytics page
 
 Description
-ILN targets freelancers in emerging markets where Spanish is widely spoken. Adding i18n infrastructure now even with just English and Spanish makes all future translations trivial and signals the project's global ambitions.
+The protocol's health is partly measured by its default rate if it rises sharply, something is wrong. This issue adds a default rate trend chart to the analytics page so the community can monitor protocol health over time.
 
 Requirements and context
 
-i18n library: react-i18next
-Languages: English (default) and Spanish
-Language toggle: globe icon in navbar, dropdown with language options
-Preference stored in localStorage
-All UI strings externalised to translation files: public/locales/en/translation.json and public/locales/es/translation.json
-Pages to fully translate (in scope): landing page, invoice submission form, freelancer dashboard, LP discovery table, navigation bar
-Dates and numbers formatted using Intl API for locale-specific formatting
-Missing translation keys fall back to English
-Key files: new src/i18n.ts, all in-scope components
+Chart type: line chart with two line "Default rate %" and "30-day moving average"
+X-axis: monthly resolution
+Y-axis: percentage (0–100%)
+Threshold line at 10% (dashed red) above this is considered concerning
+Hover tooltip: date, default rate for that month, moving average
+Summary cards above chart: "Current default rate: X%", "All-time default rate: Y%", "Trend: ↑/↓ vs last month"
+Data: Defaulted invoices / total Funded invoices per month
+Key files: src/pages/Analytics.tsx, new src/components/charts/DefaultRateChart.tsx
 Suggested execution
 
-Fork and branch: git checkout -b feat/i18n
-Install and configure react-i18next
-Create English and Spanish translation files
-Replace all hardcoded strings in in-scope pages with t() keys
-Add language toggle to navbar
-Write tests: translation key coverage, fallback to English
+Fork and branch: git checkout -b feat/default-rate-chart
+Create src/components/charts/DefaultRateChart.tsx
+Calculate 30-day moving average in a pure utility function
+Add threshold reference line using recharts ReferenceLine
+Fetch data from indexer GET /analytics/defaults?period=12m
+Write unit tests for moving average calculation
 Example commit message
-feat: add react-i18next with English and Spanish translations
+feat: add default rate trend chart with moving average to analytics
 
 Acceptance criteria
 
- Language toggle switches all in-scope pages instantly
- Spanish translation is accurate and natural (not machine-translated)
- All in-scope UI strings externalised no hardcoded English in components
- Dates and numbers formatted per locale
- Preference persists across sessions
- Missing keys fall back to English without errors
+ Both lines render correctly
+ Threshold reference line at 10% visible
+ Moving average calculation is mathematically correct
+ Summary cards show correct current and all-time values
+ Trend arrow accurate vs previous month
+ Responsive on mobile
