@@ -503,15 +503,26 @@ export default function LPDashboard() {
           <ExportButton data={filteredInvoices} filenamePrefix="iln-lp-export" />
         </div>
       </div>
-      <div className="px-6 pt-4 flex flex-col gap-3">
-        <InvoiceFilterBar
-          filters={filters}
-          onFiltersChange={setFilters}
-          onClearFilters={clearFilters}
-          activeFilterCount={activeFilterCount}
-        />
-        <ExportButton data={filteredInvoices} filenamePrefix="iln-lp-export" />
-      </div>
+       <div className="px-6 pt-4 flex flex-col gap-3">
+         <YieldCalculator
+           onFindMatching={(amount, discountRate) => {
+             // Set filters to match the calculator values
+             setFilters({
+               ...filters,
+               minAmount: amount,
+               discountRateMin: discountRate,
+               discountRateMax: discountRate + 50, // Allow some tolerance
+             });
+           }}
+         />
+         <InvoiceFilterBar
+           filters={filters}
+           onFiltersChange={setFilters}
+           onClearFilters={clearFilters}
+           activeFilterCount={activeFilterCount}
+         />
+         <ExportButton data={filteredInvoices} filenamePrefix="iln-lp-export" />
+       </div>
 
       {activeTab === "my-funded" ? (
         <LPPortfolio
