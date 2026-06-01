@@ -9,6 +9,7 @@ import { parseDueDate } from "./dates";
 import { formatUnknownError } from "./errors";
 import { createUi, describeConfig, formatInvoiceDetails, formatInvoiceList } from "./format";
 import { createKeypairFileSigner } from "./signer";
+import { TestnetAccountSeeder } from "./dev-seed";
 import type { ResolvedConfig, RpcServerLike } from "./types";
 
 export interface CliDependencies {
@@ -126,6 +127,18 @@ export async function runCli(
       const client = createClient(load());
       const invoices = await client.listInvoicesByAddress(options.address);
       ui.info(formatInvoiceList(invoices));
+    });
+
+  // Development commands
+  const devCommand = program.command("dev").description("Development utilities");
+
+  devCommand
+    .command("seed")
+    .description("Create and fund testnet accounts with USDC/EURC trustlines for development.")
+    .action(async () => {
+      const config = load();
+      const seeder = new TestnetAccountSeeder({ config, ui });
+      await seeder.seed();
     });
 
   try {

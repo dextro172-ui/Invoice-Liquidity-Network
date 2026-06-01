@@ -85,6 +85,24 @@ iln list --address G...
 
 This lists invoices where the address is the freelancer, payer, or recorded funder.
 
+### Development - Testnet Account Seeder
+
+```bash
+iln dev seed
+```
+
+Creates and funds 3 development accounts (freelancer, payer, liquidity_provider) on testnet with USDC/EURC trustlines configured. Fully idempotent - running multiple times reuses existing accounts.
+
+**Output:**
+- Generates keypairs for 3 accounts
+- Funds each via Friendbot with XLM
+- Sets up USDC and EURC trustlines
+- Saves account details to `.env.testnet.accounts` (gitignored)
+
+**Requires:** Active internet connection and testnet network configuration.
+
+For detailed setup instructions, see [SEEDER.md](./SEEDER.md).
+
 ## Local integration testing
 
 The integration suite is designed for the repository's standalone Soroban environment.
