@@ -3,6 +3,7 @@
 [![CI](https://github.com/Invoice-Liquidity-Network/Invoice-Liquidity-Network/actions/workflows/ci.yml/badge.svg)](https://github.com/Invoice-Liquidity-Network/Invoice-Liquidity-Network/actions/workflows/ci.yml)
 [![E2E Nightly](https://github.com/Invoice-Liquidity-Network/Invoice-Liquidity-Network/actions/workflows/e2e-nightly.yml/badge.svg)](https://github.com/Invoice-Liquidity-Network/Invoice-Liquidity-Network/actions/workflows/e2e-nightly.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+[![Status](https://img.shields.io/badge/status-status.iln.finance-brightgreen)](https://status.iln.finance)
 
 **Turn unpaid invoices into instant liquidity on-chain, on Stellar.**
 
@@ -181,10 +182,13 @@ npm run test:e2e              # Run E2E integration tests
 | Doc | Description |
 |-----|-------------|
 | [`docs/index.md`](./docs/index.md) | Protocol overview |
+| [`docs/tutorials/lp-funding.md`](./docs/tutorials/lp-funding.md) | LP funding tutorial |
 | [`docs/governance.md`](./docs/governance.md) | Governance guide |
 | [`docs/multi-token.md`](./docs/multi-token.md) | Multi-token support |
 | [`docs/notifications.md`](./docs/notifications.md) | Notification system |
+| [`docs/api-collection.md`](./docs/api-collection.md) | Horizon and Soroban RPC API collection examples |
 | [`docs/local-development.md`](./docs/local-development.md) | Local dev setup |
+| [`docs/ci-cd.md`](./docs/ci-cd.md) | CI/CD and deployment environments |
 | [`CONTRIBUTING.md`](./CONTRIBUTING.md) | How to contribute |
 | [`SECURITY.md`](./SECURITY.md) | Security policy |
 
@@ -209,3 +213,7 @@ MIT — see [LICENSE](./LICENSE)
 Built on [Stellar](https://stellar.org) and [Soroban](https://soroban.stellar.org).
 
 > This project is not affiliated with Stellar Development Foundation.
+
+## Security
+
+Please refer to our [Security Policy](./SECURITY.md) for information on supported versions and how to report vulnerabilities privately.

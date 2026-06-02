@@ -20,5 +20,13 @@
     "pnpm": ">=9"
   },
   "packageManager": "pnpm@9.0.0",
-  "prepare": "husky install"
+  "prepare": "husky install",
+  "bin": {
+    "iln": "packages/scripts/bin/iln.js"
+  },
+  "pnpm": {
+    "overrides": {
+      "axios": ">=1.16.0"
+    }
+  }
 }

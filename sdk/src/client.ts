@@ -1,4 +1,4 @@
-import {
+﻿import {
   Account,
   Address,
   BASE_FEE,
@@ -21,6 +21,10 @@ import type {
   SubmitInvoiceParams,
   TransactionSigner,
 } from "./types";
+
+import { parseContractError } from "./errors";
+
+import { parseContractError } from "./errors";
 
 const READ_ACCOUNT = "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF";
 const POLL_ATTEMPTS = 20;
@@ -119,6 +123,48 @@ export class ILNSdk {
     const simulation = await this.server.simulateTransaction(transaction);
 
     return this.extractInvoiceResult(simulation);
+  }
+
+  /** Fetch reputation score for an address */
+  async getReputation(address: string): Promise<number> {
+    const transaction = this.buildReadTransaction("get_reputation", [
+      this.toAddress(address),
+    ]);
+    const simulation = await this.server.simulateTransaction(transaction);
+    const result = this.extractSimulationRetval(simulation, "get_reputation");
+    const native = scValToNative(result) as unknown;
+    if (typeof native === "number") return native;
+    if (typeof native === "bigint") return Number(native);
+    throw new Error("Unexpected reputation result type");
+  }
+
+  /** Fetch contract-wide statistics */
+  async getStats(): Promise<unknown> {
+    const transaction = this.buildReadTransaction("get_stats", []);
+    const simulation = await this.server.simulateTransaction(transaction);
+    const result = this.extractSimulationRetval(simulation, "get_stats");
+    return scValToNative(result);
+  }
+
+  /** Fetch governance proposal by id */
+  async getProposal(id: bigint): Promise<unknown> {
+    const transaction = this.buildReadTransaction("get_proposal", [
+      nativeToScVal(id, { type: "u64" }),
+    ]);
+    const simulation = await this.server.simulateTransaction(transaction);
+    const result = this.extractSimulationRetval(simulation, "get_proposal");
+    return scValToNative(result);
+  }
+
+  /** Raw storage key lookup */
+  async getStorage(key: string): Promise<string> {
+    const transaction = this.buildReadTransaction("get_storage", [
+      nativeToScVal(key, { type: "string" }),
+    ]);
+    const simulation = await this.server.simulateTransaction(transaction);
+    const result = this.extractSimulationRetval(simulation, "get_storage");
+    const native = scValToNative(result);
+    return typeof native === "string" ? native : String(native);
   }
 
   private buildReadTransaction(method: string, args: xdr.ScVal[]): BuiltTransaction {
@@ -287,14 +333,10 @@ export class ILNSdk {
       return (value as { Ok: unknown }).Ok;
     }
     if ("err" in value) {
-      throw new Error(
-        `Contract method ${method} returned an error: ${JSON.stringify((value as { err: unknown }).err)}.`,
-      );
+      throw parseContractError((value as { err: unknown }).err);
     }
     if ("Err" in value) {
-      throw new Error(
-        `Contract method ${method} returned an error: ${JSON.stringify((value as { Err: unknown }).Err)}.`,
-      );
+      throw parseContractError((value as { Err: unknown }).Err);
     }
 
     return value;
@@ -374,3 +416,5 @@ export class ILNSdk {
     return String(error);
   }
 }
+
+

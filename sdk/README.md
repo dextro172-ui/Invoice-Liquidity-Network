@@ -55,6 +55,10 @@ const invoice = await sdk.getInvoice(1n);
 console.log(invoice);
 ```
 
+## Token Amounts
+
+SDK methods accept token amounts as `bigint` base units. USDC and EURC use 6 decimals, while XLM uses 7 decimals through the native SAC wrapper. See the [multi-token support guide](../docs/tokens/multi-token-support.md) for supported tokens, trustlines, testnet acquisition, and token-aware parsing examples.
+
 ## API
 
 ```ts

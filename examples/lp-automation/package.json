@@ -1,0 +1,21 @@
+{
+  "name": "lp-automation",
+  "version": "1.0.0",
+  "description": "LP funding automation script for Invoice Liquidity Network",
+  "main": "index.ts",
+  "scripts": {
+    "start": "ts-node index.ts",
+    "start:dry-run": "ts-node index.ts --dry-run"
+  },
+  "dependencies": {
+    "@invoice-liquidity/sdk": "file:../../sdk",
+    "@stellar/stellar-sdk": "^12.0.0",
+    "axios": "^1.7.0",
+    "commander": "^11.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.0"
+  }
+}
