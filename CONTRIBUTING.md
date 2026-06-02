@@ -8,6 +8,7 @@ Thank you for your interest in contributing. ILN is an open-source protocol and 
 
 - [Ways to contribute](#ways-to-contribute)
 - [Applying to work on an issue](#applying-to-work-on-an-issue)
+- [Project board](#project-board)
 - [Development setup](#development-setup)
 - [Submitting a pull request](#submitting-a-pull-request)
 - [Code standards](#code-standards)
@@ -71,6 +72,34 @@ Once assigned, fork the repo, build your solution, and open a pull request refer
 ### Step 5 — Review and merge
 
 A maintainer will review your PR. Expect one or two rounds of feedback.
+
+---
+
+## Project board
+
+The ILN organisation uses a single [GitHub Projects v2 board](https://github.com/orgs/Invoice-Liquidity-Network/projects/1) that spans all three repositories (main, frontend, smart contract).
+
+### Board views
+
+| View | What it shows |
+|------|---------------|
+| **All Open Issues** | Every open issue across all repos — start here |
+| **Smart Contract Sprint** | Active Rust/Soroban work |
+| **Frontend Sprint** | Active Next.js/UI work |
+| **SDK / Main Sprint** | SDK, CLI, indexer, and docs work |
+| **Blocked** | Issues waiting on an external dependency |
+
+### Picking up an issue from the board
+
+1. Open the [All Open Issues](https://github.com/orgs/Invoice-Liquidity-Network/projects/1/views/1) view and filter by `label:good-first-issue` or `label:help-wanted`.
+2. Click the issue title to open it in its home repository.
+3. Follow the [Applying to work on an issue](#applying-to-work-on-an-issue) process — comment your application and wait to be assigned.
+4. Once assigned, the issue status updates to **In Progress** on the board automatically.
+5. Open a PR with `Closes #N` in the description; on merge the issue moves to **Done**.
+
+> If your issue is blocked by something external, apply the `blocked` label — it will move to the **Blocked** view automatically.
+
+For maintainer setup instructions see [`docs/project-board.md`](./docs/project-board.md).
 
 ---
 
