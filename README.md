@@ -3,6 +3,7 @@
 [![CI](https://github.com/Invoice-Liquidity-Network/Invoice-Liquidity-Network/actions/workflows/ci.yml/badge.svg)](https://github.com/Invoice-Liquidity-Network/Invoice-Liquidity-Network/actions/workflows/ci.yml)
 [![E2E Nightly](https://github.com/Invoice-Liquidity-Network/Invoice-Liquidity-Network/actions/workflows/e2e-nightly.yml/badge.svg)](https://github.com/Invoice-Liquidity-Network/Invoice-Liquidity-Network/actions/workflows/e2e-nightly.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+[![Status](https://img.shields.io/badge/status-status.iln.finance-brightgreen)](https://status.iln.finance)
 
 **Turn unpaid invoices into instant liquidity on-chain, on Stellar.**
 
