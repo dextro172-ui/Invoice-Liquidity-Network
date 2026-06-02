@@ -197,6 +197,7 @@ npm run test:e2e              # Run E2E integration tests
 | [`docs/notifications.md`](./docs/notifications.md) | Notification system |
 | [`docs/api-collection.md`](./docs/api-collection.md) | Horizon and Soroban RPC API collection examples |
 | [`docs/local-development.md`](./docs/local-development.md) | Local dev setup |
+| [`docs/tutorials/first-invoice.md`](./docs/tutorials/first-invoice.md) | Hands-on invoice submission tutorial |
 | [`docs/ci-cd.md`](./docs/ci-cd.md) | CI/CD and deployment environments |
 | [`CONTRIBUTING.md`](./CONTRIBUTING.md) | How to contribute |
 | [`CODE_OF_CONDUCT.md`](./CODE_OF_CONDUCT.md) | Community standards and guidelines |

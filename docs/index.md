@@ -10,3 +10,7 @@
 - [Notifications](notifications.md)
 - [CI/CD](ci-cd.md)
 - [PR Submission Form](pr-16-submission-form.md)
+
+## Tutorials
+
+- [Submit Your First Invoice](tutorials/first-invoice.md)
