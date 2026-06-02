@@ -10,6 +10,7 @@ Thank you for your interest in contributing. ILN is an open-source protocol and 
 - [Applying to work on an issue](#applying-to-work-on-an-issue)
 - [Development setup](#development-setup)
 - [Submitting a pull request](#submitting-a-pull-request)
+- [Branch protection](#branch-protection)
 - [Code standards](#code-standards)
 - [Getting help](#getting-help)
 
@@ -35,8 +36,8 @@ We use an application process to avoid duplicate work.
 
 Browse [open issues](../../issues) and filter by label:
 
-|        Label       |             Meaning                |
-|--------------------|------------------------------------|
+| Label              | Meaning                            |
+| ------------------ | ---------------------------------- |
 | `help wanted`      | High priority, no funding attached |
 | `good first issue` | Well-scoped, good entry point      |
 | `in progress`      | Already claimed, do not apply      |
@@ -138,6 +139,13 @@ git merge upstream/main
 
 ---
 
+## Branch protection
+
+Branch protection settings for the `main` branch are documented in [docs/branch-protection.md](docs/branch-protection.md).
+These settings include required PR reviews, required status checks, dismissing stale reviews on new commits, requiring linear history, and restricting force pushes.
+
+---
+
 ## Code standards
 
 ### Rust / Soroban contracts
@@ -169,6 +177,7 @@ not just what was changed.
 Allowed types: `feat`, `fix`, `docs`, `chore`, `test`, `refactor`, `perf`, `ci`, `design`, `build`
 
 Commit messages are validated automatically:
+
 - Local: Husky runs `commitlint` on commit messages via the `commit-msg` hook.
 - CI: Pull request titles are validated by a GitHub Action. The PR title is used as the squash commit message, so it must follow the same format.
 
@@ -183,6 +192,7 @@ If you discover a security vulnerability in the smart contract or any part of IL
 Email us at: `margretnursca@gmail.com` (or open a [GitHub Security Advisory](../../security/advisories/new))
 
 Please include:
+
 - A description of the vulnerability
 - Steps to reproduce
 - Your assessment of impact
@@ -194,7 +204,7 @@ We will acknowledge your report within 48 hours and work with you on a responsib
 
 - **GitHub Discussions** — for questions, ideas, and general conversation: [Discussions tab](../../discussions)
 - **Issues** — for bug reports and feature requests only
-- **Discord** — [invite link] *(add your community link here)*
+- **Discord** — [invite link] _(add your community link here)_
 
 If you are new to Soroban development, the [Stellar Developer Docs](https://developers.stellar.org/docs/build/smart-contracts/overview) are the best starting point. The [Soroban examples repo](https://github.com/stellar/soroban-examples) is also very useful for understanding contract patterns.
 
@@ -206,4 +216,4 @@ This project follows the [Contributor Covenant](https://www.contributor-covenant
 
 ---
 
-*Questions about the contribution process? Open a [Discussion](../../discussions) and we'll help.*
+_Questions about the contribution process? Open a [Discussion](../../discussions) and we'll help._
