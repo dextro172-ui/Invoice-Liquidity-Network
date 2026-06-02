@@ -116,6 +116,32 @@ describe("runCli", () => {
     expect(stdout.toString()).toContain("Funded");
   });
 
+  it("prints live protocol configuration", async () => {
+    const stdout = createMemoryStream();
+    const client = {
+      getProtocolConfig: vi.fn().mockResolvedValue({
+        minInvoiceAmount: 10_000_000n,
+        maxDiscountRate: 2_000,
+        protocolFeeBps: 250,
+        minPayerReputation: 70,
+        decayRateBps: 25,
+      }),
+    };
+
+    const exitCode = await runCli(["config"], {
+      createClient: () => client as any,
+      loadConfig: () => TEST_CONFIG,
+      stderr: createMemoryStream(),
+      stdout,
+    });
+
+    expect(exitCode).toBe(0);
+    expect(client.getProtocolConfig).toHaveBeenCalledTimes(1);
+    expect(stdout.toString()).toContain("Min Amount");
+    expect(stdout.toString()).toContain("10000000");
+    expect(stdout.toString()).toContain("Fee");
+  });
+
   it("prints actionable errors", async () => {
     const stderr = createMemoryStream();
 
