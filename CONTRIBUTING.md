@@ -10,6 +10,7 @@ Thank you for your interest in contributing. ILN is an open-source protocol and 
 - [Applying to work on an issue](#applying-to-work-on-an-issue)
 - [Project board](#project-board)
 - [Development setup](#development-setup)
+- [Release process](./docs/release-process.md)
 - [Submitting a pull request](#submitting-a-pull-request)
 - [Branch protection](#branch-protection)
 - [Code standards](#code-standards)
@@ -83,13 +84,13 @@ The ILN organisation uses a single [GitHub Projects v2 board](https://github.com
 
 ### Board views
 
-| View | What it shows |
-|------|---------------|
-| **All Open Issues** | Every open issue across all repos — start here |
-| **Smart Contract Sprint** | Active Rust/Soroban work |
-| **Frontend Sprint** | Active Next.js/UI work |
-| **SDK / Main Sprint** | SDK, CLI, indexer, and docs work |
-| **Blocked** | Issues waiting on an external dependency |
+| View                      | What it shows                                  |
+| ------------------------- | ---------------------------------------------- |
+| **All Open Issues**       | Every open issue across all repos — start here |
+| **Smart Contract Sprint** | Active Rust/Soroban work                       |
+| **Frontend Sprint**       | Active Next.js/UI work                         |
+| **SDK / Main Sprint**     | SDK, CLI, indexer, and docs work               |
+| **Blocked**               | Issues waiting on an external dependency       |
 
 ### Picking up an issue from the board
 
@@ -242,13 +243,13 @@ This repository uses [Renovate](https://github.com/renovatebot/renovate) to keep
 
 ### Behavior
 
-| Update type | Behavior |
-|-------------|----------|
-| Patch | Individual pull requests (ungrouped for safe auto-merge); merged automatically when CI passes after a short release-age window |
-| Minor, pin, digest | Grouped into a single weekly pull request (Mondays, 09:00 UTC) |
-| Major | Separate pull requests with migration notes; never auto-merged |
-| `@stellar/*` major | Requires dependency-dashboard approval and manual review |
-| Lock files | Refreshed weekly (Mondays, 09:00 UTC) |
+| Update type        | Behavior                                                                                                                       |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| Patch              | Individual pull requests (ungrouped for safe auto-merge); merged automatically when CI passes after a short release-age window |
+| Minor, pin, digest | Grouped into a single weekly pull request (Mondays, 09:00 UTC)                                                                 |
+| Major              | Separate pull requests with migration notes; never auto-merged                                                                 |
+| `@stellar/*` major | Requires dependency-dashboard approval and manual review                                                                       |
+| Lock files         | Refreshed weekly (Mondays, 09:00 UTC)                                                                                          |
 
 Renovate runs on weekdays between 09:00 and 10:00 UTC.
 
