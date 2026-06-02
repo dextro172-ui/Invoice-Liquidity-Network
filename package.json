@@ -17,5 +17,10 @@
     "pnpm": ">=9"
   },
   "packageManager": "pnpm@9.0.0",
-  "prepare": "husky install"
+  "prepare": "husky install",
+  "pnpm": {
+    "overrides": {
+      "axios": ">=1.16.0"
+    }
+  }
 }
