@@ -1,9 +1,0 @@
-[submodule "frontend"]
-	path = frontend
-	url = https://github.com/Invoice-Liquidity-Network/ILN-Frontend.git
-	branch = main
-
-[submodule "backend"]
-	path = backend
-	url = https://github.com/Invoice-Liquidity-Network/ILN-Smart-Contract.git
-	branch = main

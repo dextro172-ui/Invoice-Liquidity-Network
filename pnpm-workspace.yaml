@@ -1,8 +1,0 @@
-packages:
-  - sdk
-  - cli
-  - indexer
-  - notifications
-  - docs
-  - "examples/*"
-  - "packages/*"
