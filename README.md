@@ -195,7 +195,7 @@ npm run test:e2e              # Run E2E integration tests
 
 We welcome contributions of all kinds — smart contract improvements, documentation, frontend, tests, and research.
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for the full process.
+Start here: [CONTRIBUTING.md](./CONTRIBUTING.md) for the project-level contribution model, repo decision tree, and Drips Wave guide.
 
 ---
 
