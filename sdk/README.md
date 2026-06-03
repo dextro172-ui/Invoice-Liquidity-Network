@@ -2,6 +2,8 @@
 
 Typed JavaScript and TypeScript SDK for the Invoice Liquidity Network Soroban contract on Stellar.
 
+By participating in this project, you agree to abide by our [Code of Conduct](../CODE_OF_CONDUCT.md).
+
 ## Install
 
 ```bash
@@ -55,6 +57,12 @@ const invoice = await sdk.getInvoice(1n);
 console.log(invoice);
 ```
 
+> **Security note:** The SDK performs limited input validation and relies on the configured Soroban RPC/Horizon node and signer implementation for contract simulation, transaction preparation, and submission. See [SDK trust model](../docs/sdk-trust-model.md) for details.
+
+## Token Amounts
+
+SDK methods accept token amounts as `bigint` base units. USDC and EURC use 6 decimals, while XLM uses 7 decimals through the native SAC wrapper. See the [multi-token support guide](../docs/tokens/multi-token-support.md) for supported tokens, trustlines, testnet acquisition, and token-aware parsing examples.
+
 ## API
 
 ```ts
@@ -84,6 +92,8 @@ getInvoice(invoiceId: bigint): Promise<Invoice>;
 ```
 
 ## Invoice type
+
+The canonical domain definitions live in `@iln/shared`; the SDK re-exports them for compatibility.
 
 ```ts
 type InvoiceStatus = "Pending" | "Funded" | "Paid" | "Defaulted";
@@ -162,3 +172,23 @@ Required environment variables:
 - `FUNDER_SECRET` - funded Stellar testnet secret for funding and default claim
 
 If these variables are not set, integration tests are skipped automatically so CI and local unit test runs remain unaffected.
+
+## E2E tests (local node)
+
+The SDK provides an end-to-end test suite that runs against a local Stellar node. This tests the complete invoice lifecycle (including partial payments, disputes, and cancellations) natively on a local network.
+
+To run the E2E tests:
+
+1. Start the local node environment:
+   ```bash
+   docker-compose -f ../tests/e2e/docker-compose.yml up -d
+   ```
+2. Wait for the node (Horizon) to become healthy.
+3. Run the tests:
+   ```bash
+   npm run test:e2e-local
+   ```
+4. Tear down the local node:
+   ```bash
+   docker-compose -f ../tests/e2e/docker-compose.yml down
+   ```

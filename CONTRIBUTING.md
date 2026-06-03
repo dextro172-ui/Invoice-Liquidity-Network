@@ -24,6 +24,11 @@ Start by choosing the right repo for the issue or improvement.
 - **Visual issue, layout bug, or frontend flow problem** → `ILN-Frontend`
 - **SDK, CLI, docs, indexer, notifications, or shared repository tooling** → `Invoice-Liquidity-Network`
 - **Governance process, roadmap, coordination, or project-level policy** → `Invoice-Liquidity-Network`
+| Label              | Meaning                            |
+| ------------------ | ---------------------------------- |
+| `help wanted`      | High priority, no funding attached |
+| `good first issue` | Well-scoped, good entry point      |
+| `in progress`      | Already claimed, do not apply      |
 
 If you are unsure or the work spans multiple repos, open the issue in `Invoice-Liquidity-Network` and clearly explain the affected repo(s). Maintainers will help route it.
 

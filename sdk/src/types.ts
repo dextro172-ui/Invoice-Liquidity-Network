@@ -1,16 +1,18 @@
-export type InvoiceStatus = "Pending" | "Funded" | "Paid" | "Defaulted";
+import type { InvoiceState } from "@iln/shared";
 
-export interface Invoice {
-  id: bigint;
-  freelancer: string;
-  payer: string;
-  amount: bigint;
-  dueDate: number;
-  discountRate: number;
-  status: InvoiceStatus;
-  funder: string | null;
-  fundedAt: number | null;
-}
+export type {
+  ContractEvent,
+  ContractStats,
+  GovernanceProposal,
+  Invoice,
+  InvoiceState,
+  LPStats,
+  ProposalStatus,
+  ReputationScore,
+  Token,
+} from "@iln/shared";
+
+export type InvoiceStatus = InvoiceState;
 
 export interface SubmitInvoiceParams {
   freelancer: string;
@@ -32,6 +34,17 @@ export interface ClaimDefaultParams {
 
 export interface MarkPaidParams {
   invoiceId: bigint;
+}
+
+export interface ProtocolConfig {
+  minInvoiceAmount: bigint;
+  maxDiscountRate: number;
+  protocolFeeBps: number;
+  minPayerReputation: number;
+  decayRateBps: number;
+  maxInvoiceDuration?: number;
+  minInvoiceDuration?: number;
+  gracePeriodSeconds?: number;
 }
 
 export interface SignTransactionOptions {
