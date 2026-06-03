@@ -2,6 +2,8 @@
 
 Command-line interface for common Invoice Liquidity Network contract operations on Stellar.
 
+By participating in this project, you agree to abide by our [Code of Conduct](../CODE_OF_CONDUCT.md).
+
 ## Install
 
 ```bash

@@ -434,4 +434,111 @@ describe("ILNSdk", () => {
       "RPC Timeout"
     );
   });
+
+  it("times out read-only contract calls with the configured read timeout", async () => {
+    vi.useFakeTimers();
+
+    const server = {
+      getAccount: vi.fn(),
+      prepareTransaction: vi.fn(),
+      sendTransaction: vi.fn(),
+      pollTransaction: vi.fn(),
+      simulateTransaction: vi.fn().mockReturnValue(new Promise(() => undefined)),
+    } satisfies RpcServerLike;
+
+    const sdk = new ILNSdk({
+      contractId: CONTRACT_ID,
+      networkPassphrase: NETWORK_PASSPHRASE,
+      rpcUrl: "https://example.test",
+      server,
+      timeouts: { readMs: 10 },
+    });
+
+    const promise = sdk.getInvoice(1n);
+    const assertion = expect(promise).rejects.toMatchObject({
+      name: "TimeoutError",
+      operation: "simulateTransaction:get_invoice",
+      timeoutMs: 10,
+    });
+    await vi.advanceTimersByTimeAsync(10);
+    await assertion;
+
+    vi.useRealTimers();
+  });
+
+  it("times out write RPC calls with the configured write timeout", async () => {
+    vi.useFakeTimers();
+
+    const payerKeypair = Keypair.random();
+    const signer = createKeypairSigner(payerKeypair.secret());
+    const server = {
+      getAccount: vi.fn().mockReturnValue(new Promise(() => undefined)),
+      prepareTransaction: vi.fn(),
+      sendTransaction: vi.fn(),
+      pollTransaction: vi.fn(),
+      simulateTransaction: vi.fn(),
+    } satisfies RpcServerLike;
+
+    const sdk = new ILNSdk({
+      contractId: CONTRACT_ID,
+      networkPassphrase: NETWORK_PASSPHRASE,
+      rpcUrl: "https://example.test",
+      server,
+      signer,
+      timeouts: { writeMs: 20 },
+    });
+
+    const promise = sdk.markPaid({ invoiceId: 9n });
+    const assertion = expect(promise).rejects.toMatchObject({
+      name: "TimeoutError",
+      operation: "getAccount:mark_paid",
+      timeoutMs: 20,
+    });
+    await vi.advanceTimersByTimeAsync(20);
+    await assertion;
+
+    vi.useRealTimers();
+  });
+
+  it("times out pre-submit simulation calls with the configured simulation timeout", async () => {
+    vi.useFakeTimers();
+
+    const freelancerKeypair = Keypair.random();
+    const signer = createKeypairSigner(freelancerKeypair.secret());
+    const server = {
+      getAccount: vi
+        .fn()
+        .mockResolvedValue(new Account(freelancerKeypair.publicKey(), "12")),
+      prepareTransaction: vi.fn(),
+      sendTransaction: vi.fn(),
+      pollTransaction: vi.fn(),
+      simulateTransaction: vi.fn().mockReturnValue(new Promise(() => undefined)),
+    } satisfies RpcServerLike;
+
+    const sdk = new ILNSdk({
+      contractId: CONTRACT_ID,
+      networkPassphrase: NETWORK_PASSPHRASE,
+      rpcUrl: "https://example.test",
+      server,
+      signer,
+      timeouts: { simulationMs: 30 },
+    });
+
+    const promise = sdk.submitInvoice({
+      amount: 10000000n,
+      discountRate: 250,
+      dueDate: 1700000200,
+      freelancer: freelancerKeypair.publicKey(),
+      payer: Keypair.random().publicKey(),
+    });
+    const assertion = expect(promise).rejects.toMatchObject({
+      name: "TimeoutError",
+      operation: "simulateTransaction:submit_invoice",
+      timeoutMs: 30,
+    });
+    await vi.advanceTimersByTimeAsync(30);
+    await assertion;
+
+    vi.useRealTimers();
+  });
 });

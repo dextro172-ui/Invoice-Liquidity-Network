@@ -7,11 +7,11 @@ This guide explains how third-party developers (accounting tools, ERP systems, D
 ## Table of Contents
 1. [Authentication Patterns](#1-authentication-patterns)
 2. [Querying Invoice State](#2-querying-invoice-state)
-3. [Listening to Contract Events (Horizon Streaming)](#3-listening-to-contract-events-horizon-streaming)
+3. [Listening to Contract Events ([Horizon](glossary.md#horizon) Streaming)](#3-listening-to-contract-events-horizon-streaming)
 4. [Submitting Invoices Programmatically](#4-submitting-invoices-programmatically)
 5. [Building a Custom LP Dashboard](#5-building-a-custom-lp-dashboard)
 6. [Handling Multi-Token Precision](#6-handling-multi-token-precision)
-7. [Horizon API Rate Limits & Best Practices](#7-horizon-api-rate-limits--best-practices)
+7. [[Horizon](glossary.md#horizon) API Rate Limits & Best Practices](#7-horizon-api-rate-limits--best-practices)
 
 ---
 
@@ -85,9 +85,9 @@ stellar contract invoke \
 
 ---
 
-## 3. Listening to Contract Events (Horizon Streaming)
+## 3. Listening to Contract Events ([Horizon](glossary.md#horizon) Streaming)
 
-Instead of polling, third-party applications should subscribe to Soroban events using the Horizon streaming API or the RPC server `/events` endpoint.
+Instead of polling, third-party applications should subscribe to [Soroban](glossary.md#soroban) events using the Horizon streaming API or the RPC server `/events` endpoint.
 
 ### Horizon SSE Event Stream Example (TypeScript)
 
@@ -207,7 +207,7 @@ stellar contract invoke \
 
 ## 5. Building a Custom LP Dashboard
 
-For DeFi aggregators and Liquidity Providers (LPs), monitoring yield and funding invoices requires extracting status data.
+For DeFi aggregators and [Liquidity Providers (LPs)](glossary.md#lp-liquidity-provider), monitoring yield and funding invoices requires extracting status data.
 
 ### Querying & Yield Computations
 
@@ -225,7 +225,7 @@ async function getLPMetrics(lpAddress: string, activeInvoiceIds: bigint[]) {
     if (invoice.funder === lpAddress) {
       totalFunded += invoice.amount;
       
-      // Calculate return based on discount rate (e.g. 500 basis points = 5.00%)
+      // Calculate return based on [discount rate](glossary.md#discount-rate) (e.g. 500 [basis points](glossary.md#basis-points-bps) = 5.00%)
       const discountAmount = (invoice.amount * BigInt(invoice.discountRate)) / 10000n;
       
       if (invoice.status === "Paid") {
@@ -246,7 +246,7 @@ async function getLPMetrics(lpAddress: string, activeInvoiceIds: bigint[]) {
 
 ILN accepts multiple allowlisted tokens (e.g. USDC, EURC, and XLM). Each asset has distinct decimals:
 
-| Token | Decimals | Format Code | Smallest Unit (Stroop/Base Unit) |
+| Token | Decimals | Format Code | Smallest Unit ([Stroop](glossary.md#stroop)/Base Unit) |
 |---|---|---|---|
 | **USDC** | 6 | USDC | `1` = `0.000001 USDC` |
 | **EURC** | 6 | EURC | `1` = `0.000001 EURC` |
@@ -287,7 +287,7 @@ console.log(toBaseUnits("100.50", "XLM"));  // 1005000000n
 
 ---
 
-## 7. Horizon API Rate Limits & Best Practices
+## 7. [Horizon](glossary.md#horizon) API Rate Limits & Best Practices
 
 Public Horizon endpoints enforce rate limits to maintain network stability.
 

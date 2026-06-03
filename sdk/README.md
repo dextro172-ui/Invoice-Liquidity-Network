@@ -2,6 +2,8 @@
 
 Typed JavaScript and TypeScript SDK for the Invoice Liquidity Network Soroban contract on Stellar.
 
+By participating in this project, you agree to abide by our [Code of Conduct](../CODE_OF_CONDUCT.md).
+
 ## Install
 
 ```bash
@@ -55,6 +57,43 @@ const invoice = await sdk.getInvoice(1n);
 console.log(invoice);
 ```
 
+> **Security note:** The SDK performs limited input validation and relies on the configured Soroban RPC/Horizon node and signer implementation for contract simulation, transaction preparation, and submission. See [SDK trust model](../docs/sdk-trust-model.md) for details.
+
+## Request timeouts
+
+SDK network calls fail fast with `TimeoutError` when the configured deadline is exceeded.
+
+Defaults:
+
+- Read operations: `10_000ms`
+- Write operations: `30_000ms`
+- Simulation operations: `15_000ms`
+- `timeoutMs`: fallback default for all categories when operation-specific values are not supplied
+
+```ts
+import { ILNSdk, ILN_TESTNET, TimeoutError } from "@invoice-liquidity/sdk";
+
+const sdk = new ILNSdk({
+  ...ILN_TESTNET,
+  timeoutMs: 30_000,
+  timeouts: {
+    readMs: 10_000,
+    writeMs: 30_000,
+    simulationMs: 15_000,
+  },
+});
+
+try {
+  await sdk.getInvoice(1n);
+} catch (error) {
+  if (error instanceof TimeoutError) {
+    console.error(`${error.operation} timed out after ${error.timeoutMs}ms`);
+  }
+}
+```
+
+Read timeouts apply to read-only contract queries, write timeouts apply to account loading, transaction preparation, submission, and polling, and simulation timeouts apply to pre-submit simulations.
+
 ## Token Amounts
 
 SDK methods accept token amounts as `bigint` base units. USDC and EURC use 6 decimals, while XLM uses 7 decimals through the native SAC wrapper. See the [multi-token support guide](../docs/tokens/multi-token-support.md) for supported tokens, trustlines, testnet acquisition, and token-aware parsing examples.
@@ -88,6 +127,8 @@ getInvoice(invoiceId: bigint): Promise<Invoice>;
 ```
 
 ## Invoice type
+
+The canonical domain definitions live in `@iln/shared`; the SDK re-exports them for compatibility.
 
 ```ts
 type InvoiceStatus = "Pending" | "Funded" | "Paid" | "Defaulted";

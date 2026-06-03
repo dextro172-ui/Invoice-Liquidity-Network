@@ -6,7 +6,7 @@ The Invoice Liquidity Network spans three repositories whose outputs are consume
 
 | Repository | Component | Version Source |
 |---|---|---|
-| [ILN-Smart-Contract](https://github.com/Invoice-Liquidity-Network/ILN-Smart-Contract) | Soroban contracts (Rust) | `backend/contracts/invoice_liquidity/Cargo.toml` → `[package].version` |
+| [ILN-Smart-Contract](https://github.com/Invoice-Liquidity-Network/ILN-Smart-Contract) | [Soroban](glossary.md#soroban) contracts (Rust) | `backend/contracts/invoice_liquidity/Cargo.toml` → `[package].version` |
 | [Invoice-Liquidity-Network](https://github.com/Invoice-Liquidity-Network/Invoice-Liquidity-Network) — `sdk/` | TypeScript SDK | `sdk/package.json` → `version` |
 | [ILN-Frontend](https://github.com/Invoice-Liquidity-Network/ILN-Frontend) | Next.js dApp | `frontend/package.json` → `version` |
 
