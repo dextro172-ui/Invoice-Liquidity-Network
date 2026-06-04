@@ -9,6 +9,7 @@
     "test:coverage": "turbo run test:coverage",
     "build": "turbo run build",
     "generate:types": "ts-node --esm scripts/generate-types.ts",
+    "dead-code:check": "knip",
     "gitleaks:scan": "pnpm exec gitleaks detect --no-git -s . --config gitleaks.toml --baseline-path .secrets.baseline",
     "gitleaks:baseline": "pnpm exec gitleaks detect --no-git -s . --config gitleaks.toml --report-format json --report-path .secrets.baseline",
     "syncpack:check": "syncpack list-mismatches"
